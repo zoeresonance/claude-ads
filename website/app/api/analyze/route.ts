@@ -1,11 +1,9 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextRequest, NextResponse } from "next/server";
 import { buildUserMessage, SYSTEM_PROMPT } from "@/lib/prompt";
 import type { AdMetrics, AnalysisResult } from "@/lib/types";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const genai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? "");
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,19 +16,13 @@ export async function POST(req: NextRequest) {
 
     const userMessage = buildUserMessage(metrics);
 
-    const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 8192,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userMessage }],
+    const model = genai.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: SYSTEM_PROMPT,
     });
 
-    const content = message.content[0];
-    if (content.type !== "text") {
-      throw new Error("Unexpected response type from Claude");
-    }
-
-    let rawText = content.text.trim();
+    const response = await model.generateContent(userMessage);
+    let rawText = response.response.text().trim();
 
     // Strip markdown code fences if present
     rawText = rawText.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "");
