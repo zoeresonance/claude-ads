@@ -176,7 +176,7 @@ export default function Home() {
               </p>
             ) : (
               <p className="text-red-500 text-xs mt-2">
-                Make sure ANTHROPIC_API_KEY is set in .env.local.
+                Make sure GOOGLE_AI_API_KEY is set in your environment variables.
               </p>
             )}
           </div>

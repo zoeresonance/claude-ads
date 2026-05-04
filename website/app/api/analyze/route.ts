@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const userMessage = buildUserMessage(metrics);
 
     const model = genai.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       systemInstruction: SYSTEM_PROMPT,
     });
 
