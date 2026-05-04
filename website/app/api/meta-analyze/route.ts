@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Analysis failed. Please check your credentials and try again." },
+      { error: `Analysis failed: ${msg}` },
       { status: 500 }
     );
   }
