@@ -1,9 +1,9 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import { buildUserMessage, SYSTEM_PROMPT } from "@/lib/prompt";
 import type { AdMetrics, AnalysisResult } from "@/lib/types";
 
-const genai = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? "");
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY ?? "" });
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,15 +16,13 @@ export async function POST(req: NextRequest) {
 
     const userMessage = buildUserMessage(metrics);
 
-    const model = genai.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: SYSTEM_PROMPT,
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash-lite",
+      contents: userMessage,
+      config: { systemInstruction: SYSTEM_PROMPT },
     });
 
-    const response = await model.generateContent(userMessage);
-    let rawText = response.response.text().trim();
-
-    // Strip markdown code fences if present
+    let rawText = (response.text ?? "").trim();
     rawText = rawText.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "");
 
     const result: AnalysisResult = JSON.parse(rawText);
