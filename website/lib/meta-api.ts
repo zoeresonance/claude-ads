@@ -207,7 +207,7 @@ export async function fetchMetaData(
     paginate<MetaAdSet>(`/${actId}/adsets`, {
       fields:
         "id,name,campaign_id,status,effective_status,daily_budget,lifetime_budget,optimization_goal,billing_event,bid_strategy,targeting,learning_stage_info,attribution_spec,promoted_object,created_time",
-      effective_status: '["ACTIVE","PAUSED","LEARNING","LEARNING_LIMITED"]',
+      effective_status: '["ACTIVE","PAUSED","ADSET_PAUSED","IN_PROCESS","WITH_ISSUES"]',
       limit: "100",
       access_token: t,
     }),
