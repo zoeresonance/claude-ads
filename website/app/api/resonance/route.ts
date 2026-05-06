@@ -33,7 +33,7 @@ async function generateWithRetry(contents: string, retries = 3): Promise<string>
 
 export async function POST(req: NextRequest) {
   try {
-    const { accountId } = await req.json();
+    const { accountId, dateRange } = await req.json();
     const token = process.env.META_SYSTEM_TOKEN;
 
     if (!token) {
@@ -67,10 +67,10 @@ export async function POST(req: NextRequest) {
 
     // Fetch ad data + organic data in parallel
     const [adData, organic] = await Promise.all([
-      fetchMetaData(token, accountId).catch((err) => {
+      fetchMetaData(token, accountId, dateRange).catch((err) => {
         throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
-      fetchOrganicData(token, client.facebookPageId, client.instagramAccountId).catch((err) => {
+      fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange).catch((err) => {
         throw new Error(`Organic data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
     ]);

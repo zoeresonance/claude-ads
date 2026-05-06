@@ -32,7 +32,7 @@ async function generateWithRetry(contents: string, retries = 3): Promise<string>
 
 export async function POST(req: NextRequest) {
   try {
-    const { accountId } = await req.json();
+    const { accountId, dateRange } = await req.json();
     const token = process.env.META_SYSTEM_TOKEN;
 
     if (!token) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     let metaData;
     try {
-      metaData = await fetchMetaData(token, accountId);
+      metaData = await fetchMetaData(token, accountId, dateRange);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to fetch Meta data";
       return NextResponse.json({ error: msg }, { status: 400 });
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
         ads: metaData.ads.length,
         spend: metaData.accountInsights?.spend,
         fetchedAt: metaData.fetchedAt,
+        dateRange: metaData.dateRange,
       },
     });
   } catch (error) {

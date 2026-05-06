@@ -5,6 +5,7 @@ import ConnectForm from "@/components/ConnectForm";
 import InputForm from "@/components/InputForm";
 import ResultsDashboard from "@/components/ResultsDashboard";
 import ResonancePanel from "@/components/ResonancePanel";
+import type { DateRange } from "@/components/DateRangePicker";
 import type { AdMetrics, AnalysisResult, ResonanceResult } from "@/lib/types";
 
 type Mode = "connect" | "manual";
@@ -19,6 +20,7 @@ interface AccountMeta {
   ads: number;
   spend?: string;
   fetchedAt: string;
+  dateRange?: DateRange;
 }
 
 export default function Home() {
@@ -35,7 +37,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<ResultTab>("health");
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  async function handleConnect(token: string, accountId: string) {
+  async function handleConnect(token: string, accountId: string, dateRange: DateRange) {
     setLoading(true);
     setError(null);
     setResult(null);
@@ -49,7 +51,7 @@ export default function Home() {
       const res = await fetch("/api/meta-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId }),
+        body: JSON.stringify({ accountId, dateRange }),
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error ?? "Analysis failed");
@@ -59,7 +61,7 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
       // Kick off resonance analysis in the background (non-blocking)
-      fetchResonance(accountId);
+      fetchResonance(accountId, dateRange);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -68,14 +70,14 @@ export default function Home() {
     }
   }
 
-  async function fetchResonance(accountId: string) {
+  async function fetchResonance(accountId: string, dateRange: DateRange) {
     setResonanceLoading(true);
     setResonanceError(null);
     try {
       const res = await fetch("/api/resonance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId }),
+        body: JSON.stringify({ accountId, dateRange }),
       });
       const data = await res.json();
       if (res.status === 404) return; // No client config — silently skip
@@ -266,9 +268,17 @@ export default function Home() {
                 </p>
               </div>
             )}
+            {account.dateRange && (
+              <div>
+                <p className="text-blue-200 text-xs font-medium">Date Range</p>
+                <p className="font-bold">
+                  {account.dateRange.since} → {account.dateRange.until}
+                </p>
+              </div>
+            )}
             <div className="ml-auto flex items-center gap-3">
               <p className="text-blue-200 text-xs">
-                Data fetched {new Date(account.fetchedAt).toLocaleTimeString()}
+                Fetched {new Date(account.fetchedAt).toLocaleTimeString()}
               </p>
               <button
                 onClick={handleReset}

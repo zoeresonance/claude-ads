@@ -151,6 +151,7 @@ export interface MetaFullData {
   adsetInsights: MetaAdSetInsights[];
   pixels: MetaPixel[];
   customAudiences: MetaCustomAudience[];
+  dateRange?: { since: string; until: string };
   fetchedAt: string;
 }
 
@@ -170,12 +171,27 @@ const INSIGHT_FIELDS = [
   "cost_per_action_type",
 ].join(",");
 
+export interface DateRange {
+  since: string; // YYYY-MM-DD
+  until: string; // YYYY-MM-DD
+}
+
+function defaultRange(): DateRange {
+  const until = new Date();
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+  return { since: since.toISOString().slice(0, 10), until: until.toISOString().slice(0, 10) };
+}
+
 export async function fetchMetaData(
   token: string,
-  accountId: string
+  accountId: string,
+  dateRange?: DateRange
 ): Promise<MetaFullData> {
   const actId = accountId.startsWith("act_") ? accountId : `act_${accountId}`;
   const t = token.trim();
+  const range = dateRange ?? defaultRange();
+  const timeRange = JSON.stringify({ since: range.since, until: range.until });
 
   const [
     account,
@@ -221,10 +237,10 @@ export async function fetchMetaData(
       access_token: t,
     }),
 
-    // Account-level insights (last 30 days)
+    // Account-level insights
     gql<{ data: MetaInsights[] }>(`/${actId}/insights`, {
       fields: INSIGHT_FIELDS,
-      date_preset: "last_30d",
+      time_range: timeRange,
       level: "account",
       access_token: t,
     }).then((r) => r.data?.[0] ?? null).catch(() => null),
@@ -232,7 +248,7 @@ export async function fetchMetaData(
     // Campaign-level insights
     paginate<MetaCampaignInsights>(`/${actId}/insights`, {
       fields: `campaign_id,campaign_name,objective,${INSIGHT_FIELDS}`,
-      date_preset: "last_30d",
+      time_range: timeRange,
       level: "campaign",
       limit: "50",
       access_token: t,
@@ -241,7 +257,7 @@ export async function fetchMetaData(
     // Ad set-level insights (for frequency per ad set)
     paginate<MetaAdSetInsights>(`/${actId}/insights`, {
       fields: `adset_id,adset_name,campaign_id,campaign_name,${INSIGHT_FIELDS}`,
-      date_preset: "last_30d",
+      time_range: timeRange,
       level: "adset",
       limit: "100",
       access_token: t,
@@ -273,6 +289,7 @@ export async function fetchMetaData(
     adsetInsights: adsetInsightsRaw,
     pixels,
     customAudiences,
+    dateRange: range,
     fetchedAt: new Date().toISOString(),
   };
 }
@@ -325,6 +342,7 @@ export interface OrganicData {
   igInsights: PageInsightValue[];
   igAudienceDemographics: PageInsightValue[];
   igMedia: IgMedia[];
+  dateRange: DateRange;
   fetchedAt: string;
 }
 
@@ -335,11 +353,15 @@ export interface OrganicData {
 export async function fetchOrganicData(
   token: string,
   facebookPageId: string,
-  instagramAccountId: string
+  instagramAccountId: string,
+  dateRange?: DateRange
 ): Promise<OrganicData> {
   const t = token.trim();
+  const range = dateRange ?? defaultRange();
+  const sinceTs = String(Math.floor(new Date(range.since).getTime() / 1000));
+  const untilTs = String(Math.floor(new Date(range.until).getTime() / 1000));
 
-  const [page, pageInsights, pagePosts, igInsights, igAudienceDemographics, igMedia] =
+  const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
       // Page summary
       gql<{ id: string; name: string; fan_count: number; followers_count: number }>(
@@ -347,7 +369,7 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Page-level 28-day metrics
+      // Page-level metrics for the date range
       gql<{ data: PageInsightValue[] }>(
         `/${facebookPageId}/insights`,
         {
@@ -359,12 +381,14 @@ export async function fetchOrganicData(
             "page_views_total",
             "page_fan_adds_unique",
           ].join(","),
-          period: "days_28",
+          period: "day",
+          since: sinceTs,
+          until: untilTs,
           access_token: t,
         }
       ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
 
-      // Recent FB posts with per-post metrics
+      // Recent FB posts (filtered by date range below)
       paginate<PagePost>(`/${facebookPageId}/posts`, {
         fields: [
           "id",
@@ -375,27 +399,25 @@ export async function fetchOrganicData(
           "attachments{media_type,type}",
           "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
         ].join(","),
-        limit: "25",
+        since: sinceTs,
+        until: untilTs,
+        limit: "50",
         access_token: t,
       }).catch(() => [] as PagePost[]),
 
-      // Instagram account-level insights
+      // Instagram account-level insights for the date range
       gql<{ data: PageInsightValue[] }>(
         `/${instagramAccountId}/insights`,
         {
-          metric: [
-            "reach",
-            "impressions",
-            "profile_views",
-            "follower_count",
-            "accounts_engaged",
-          ].join(","),
-          period: "days_28",
+          metric: ["reach", "impressions", "profile_views", "accounts_engaged"].join(","),
+          period: "day",
+          since: sinceTs,
+          until: untilTs,
           access_token: t,
         }
       ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
 
-      // Instagram audience demographics
+      // Instagram audience demographics — lifetime only (API limitation)
       gql<{ data: PageInsightValue[] }>(
         `/${instagramAccountId}/insights`,
         {
@@ -405,7 +427,7 @@ export async function fetchOrganicData(
         }
       ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
 
-      // Recent IG posts with per-post metrics
+      // Recent IG posts (filtered client-side by date range)
       paginate<IgMedia>(`/${instagramAccountId}/media`, {
         fields: [
           "id",
@@ -416,18 +438,27 @@ export async function fetchOrganicData(
           "comments_count",
           "insights.metric(reach,impressions,engagement,saved)",
         ].join(","),
-        limit: "25",
+        limit: "50",
         access_token: t,
       }).catch(() => [] as IgMedia[]),
     ]);
 
+  // Filter IG media by date range (the API doesn't support since/until on /media)
+  const sinceMs = new Date(range.since).getTime();
+  const untilMs = new Date(range.until).getTime() + 86400000; // include the until day
+  const igMedia = allIgMedia.filter((m) => {
+    const t = new Date(m.timestamp).getTime();
+    return t >= sinceMs && t <= untilMs;
+  });
+
   return {
     page,
     pageInsights,
-    pagePosts,
+    pagePosts: allPagePosts,
     igInsights,
     igAudienceDemographics,
     igMedia,
+    dateRange: range,
     fetchedAt: new Date().toISOString(),
   };
 }

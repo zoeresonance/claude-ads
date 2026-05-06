@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DateRangePicker, { DateRange, defaultDateRange } from "./DateRangePicker";
 
 interface AdAccount {
   id: string;
@@ -9,7 +10,7 @@ interface AdAccount {
 }
 
 interface Props {
-  onAnalyze: (token: string, accountId: string) => void;
+  onAnalyze: (token: string, accountId: string, dateRange: DateRange) => void;
   loading: boolean;
 }
 
@@ -18,6 +19,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [selectedId, setSelectedId] = useState("");
   const [fetchingAccounts, setFetchingAccounts] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange());
 
   useEffect(() => {
     fetch("/api/accounts")
@@ -34,7 +36,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedId) return;
-    onAnalyze("", selectedId);
+    onAnalyze("", selectedId, dateRange);
   }
 
   return (
@@ -43,8 +45,8 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
           { icon: "📋", title: "Pick an account", desc: "Choose from your agency's linked accounts" },
-          { icon: "📡", title: "Live data fetch", desc: "We pull from Meta's Marketing API" },
-          { icon: "🤖", title: "AI audit", desc: "50-check analysis in ~20 seconds" },
+          { icon: "📅", title: "Choose a date range", desc: "Adjust the analysis window" },
+          { icon: "🤖", title: "AI audit + resonance", desc: "Health and audience scoring in ~30 sec" },
         ].map((s) => (
           <div key={s.title} className="bg-slate-50 rounded-xl p-4 text-center">
             <div className="text-2xl mb-1">{s.icon}</div>
@@ -86,6 +88,9 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
         )}
       </div>
 
+      {/* Date range */}
+      <DateRangePicker value={dateRange} onChange={setDateRange} />
+
       <button
         type="submit"
         disabled={loading || !selectedId}
@@ -105,7 +110,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       </button>
 
       <p className="text-center text-xs text-slate-400">
-        Pulls campaigns, ad sets, creatives, pixels, audiences, and 30-day performance data
+        Pulls campaigns, ad sets, creatives, pixels, audiences, and performance data for the selected range
       </p>
     </form>
   );
