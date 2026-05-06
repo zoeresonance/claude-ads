@@ -197,6 +197,13 @@ export default function ResonancePanel({ result, clientName }: Props) {
           ))}
         </div>
       </div>
+
+      {/* Data caveat */}
+      <p className="text-xs text-slate-400 text-center px-4">
+        Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
+        not the selected date range — Meta&apos;s API does not support custom ranges for that
+        metric. All other metrics respect the selected range.
+      </p>
     </div>
   );
 }

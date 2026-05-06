@@ -105,6 +105,11 @@ export default function DateRangePicker({ value, onChange }: Props) {
       <p className="text-xs text-slate-400">
         Analyzing {value.since} → {value.until} ({days} day{days === 1 ? "" : "s"})
       </p>
+      <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+        Note: Instagram audience demographics (age, gender, location) are always{" "}
+        <strong>lifetime</strong> — Meta&apos;s API doesn&apos;t allow custom date ranges for that
+        metric. All other metrics respect the selected range.
+      </p>
     </div>
   );
 }

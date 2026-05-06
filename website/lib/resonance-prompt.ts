@@ -13,6 +13,8 @@ Your job is to analyze whether the content and ads are actually resonating with 
 - WHERE there are gaps between what the persona needs and what the content delivers
 - HOW to adjust specific pieces of content or ads to better land with the audience
 
+IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics (reach, impressions, post engagement, ad performance) DO respect the selected date range.
+
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 
 {
@@ -160,7 +162,7 @@ export function buildResonanceUserMessage(
     igSections.push(`  Accounts Engaged: ${getInsightValue(organic.igInsights, "accounts_engaged")}`);
   }
   if (organic.igAudienceDemographics.length) {
-    igSections.push("\nAudience Demographics:");
+    igSections.push("\nAudience Demographics (LIFETIME — represents all-time follower base, NOT this date range):");
     for (const dim of organic.igAudienceDemographics) {
       const last = dim.values?.[dim.values.length - 1]?.value;
       if (typeof last === "object" && last !== null) {
