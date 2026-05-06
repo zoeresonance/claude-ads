@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface AdAccount {
   id: string;
@@ -9,9 +9,36 @@ interface AdAccount {
   account_status: number;
 }
 
+interface SavedSession {
+  token: string;
+  expiresAt: number;
+  expiresInDays: number;
+}
+
 interface Props {
   onAnalyze: (token: string, accountId: string) => void;
   loading: boolean;
+}
+
+const STORAGE_KEY = "meta_session";
+
+function loadSession(): SavedSession | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const session: SavedSession = JSON.parse(raw);
+    if (Date.now() >= session.expiresAt) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+function daysRemaining(expiresAt: number): number {
+  return Math.max(0, Math.floor((expiresAt - Date.now()) / 86400000));
 }
 
 export default function ConnectForm({ onAnalyze, loading }: Props) {
@@ -23,17 +50,55 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [useManual, setUseManual] = useState(false);
   const [fetchingAccounts, setFetchingAccounts] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [savedSession, setSavedSession] = useState<SavedSession | null>(null);
 
   const accountId = useManual ? manualId : selectedId;
 
-  async function handleFetchAccounts() {
+  // On mount: restore saved session and auto-load accounts
+  useEffect(() => {
+    const session = loadSession();
+    if (session) {
+      setSavedSession(session);
+      setToken(session.token);
+      fetchAccounts(session.token, false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function fetchAccounts(t: string, exchange: boolean) {
     setFetchingAccounts(true);
     setFetchError(null);
     setAccounts([]);
     setSelectedId("");
+
     try {
+      // Exchange for long-lived token if requested
+      if (exchange) {
+        const exchRes = await fetch("/api/exchange-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: t }),
+        });
+        const exchJson = await exchRes.json();
+        if (!exchRes.ok || exchJson.error) {
+          // Exchange failed — continue with the original token, don't block the user
+          console.warn("Token exchange failed:", exchJson.error);
+        } else {
+          t = exchJson.accessToken;
+          setToken(t);
+          const session: SavedSession = {
+            token: t,
+            expiresAt: exchJson.expiresAt,
+            expiresInDays: exchJson.expiresInDays,
+          };
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+          setSavedSession(session);
+        }
+      }
+
+      // Fetch ad accounts
       const res = await fetch(
-        `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,currency,account_status&limit=50&access_token=${encodeURIComponent(token.trim())}`
+        `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,currency,account_status&limit=50&access_token=${encodeURIComponent(t)}`
       );
       const json = await res.json();
       if (json.error) throw new Error(json.error.message);
@@ -46,6 +111,15 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
     } finally {
       setFetchingAccounts(false);
     }
+  }
+
+  function handleClearSession() {
+    localStorage.removeItem(STORAGE_KEY);
+    setSavedSession(null);
+    setToken("");
+    setAccounts([]);
+    setSelectedId("");
+    setFetchError(null);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -74,65 +148,92 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
         ))}
       </div>
 
-      {/* Step 1: Access Token */}
-      <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-slate-700">
-          Step 1 — Access Token <span className="text-red-500">*</span>
-        </label>
-        <p className="text-xs text-slate-500">
-          Get this from{" "}
-          <a
-            href="https://developers.facebook.com/tools/explorer"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-700"
-          >
-            Meta Graph API Explorer
-          </a>
-          . Needs permissions:{" "}
-          <span className="font-mono bg-slate-100 px-1 rounded">ads_read</span>,{" "}
-          <span className="font-mono bg-slate-100 px-1 rounded">ads_management</span>,{" "}
-          <span className="font-mono bg-slate-100 px-1 rounded">read_insights</span>.
-        </p>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type={showToken ? "text" : "password"}
-              value={token}
-              onChange={(e) => {
-                setToken(e.target.value);
-                setAccounts([]);
-                setSelectedId("");
-                setFetchError(null);
-              }}
-              placeholder="EAAxxxxxxxxxxxxx..."
-              required
-              className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400 font-mono"
-            />
-            <button
-              type="button"
-              onClick={() => setShowToken((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1 rounded"
-            >
-              {showToken ? "Hide" : "Show"}
-            </button>
+      {/* Saved session banner */}
+      {savedSession && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-green-800">
+            <span>✓</span>
+            <span>
+              Session saved —{" "}
+              <strong>{daysRemaining(savedSession.expiresAt)} days</strong> remaining
+            </span>
           </div>
           <button
             type="button"
-            onClick={handleFetchAccounts}
-            disabled={!canFetch}
-            className="px-4 py-3 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            onClick={handleClearSession}
+            className="text-xs text-green-600 hover:text-green-800 underline whitespace-nowrap"
           >
-            {fetchingAccounts ? "Fetching…" : "Fetch accounts"}
+            Clear session
           </button>
         </div>
-      </div>
+      )}
+
+      {/* Step 1: Access Token */}
+      {!savedSession && (
+        <div className="space-y-1.5">
+          <label className="block text-sm font-semibold text-slate-700">
+            Step 1 — Access Token <span className="text-red-500">*</span>
+          </label>
+          <p className="text-xs text-slate-500">
+            Get this from{" "}
+            <a
+              href="https://developers.facebook.com/tools/explorer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-700"
+            >
+              Meta Graph API Explorer
+            </a>
+            . Needs:{" "}
+            <span className="font-mono bg-slate-100 px-1 rounded">ads_read</span>,{" "}
+            <span className="font-mono bg-slate-100 px-1 rounded">ads_management</span>,{" "}
+            <span className="font-mono bg-slate-100 px-1 rounded">read_insights</span>.
+          </p>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type={showToken ? "text" : "password"}
+                value={token}
+                onChange={(e) => {
+                  setToken(e.target.value);
+                  setAccounts([]);
+                  setSelectedId("");
+                  setFetchError(null);
+                }}
+                placeholder="EAAxxxxxxxxxxxxx..."
+                required
+                className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 pr-16 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400 font-mono"
+              />
+              <button
+                type="button"
+                onClick={() => setShowToken((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 hover:text-slate-700 font-medium px-2 py-1 rounded"
+              >
+                {showToken ? "Hide" : "Show"}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => fetchAccounts(token.trim(), true)}
+              disabled={!canFetch}
+              className="px-4 py-3 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+            >
+              {fetchingAccounts ? "Fetching…" : "Fetch accounts"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Step 2: Account selector */}
       <div className="space-y-1.5">
         <label className="block text-sm font-semibold text-slate-700">
-          Step 2 — Ad Account <span className="text-red-500">*</span>
+          {savedSession ? "Ad Account" : "Step 2 — Ad Account"}{" "}
+          <span className="text-red-500">*</span>
         </label>
+
+        {fetchingAccounts && (
+          <p className="text-xs text-slate-500 animate-pulse">Loading your ad accounts…</p>
+        )}
 
         {accounts.length > 0 && !useManual ? (
           <>
@@ -157,48 +258,52 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             </button>
           </>
         ) : (
-          <>
-            {!useManual && (
-              <p className="text-xs text-slate-500">
-                Paste your token above and click <strong>Fetch accounts</strong> to load a dropdown, or enter your ID manually below.
-              </p>
-            )}
-            <input
-              type="text"
-              value={manualId}
-              onChange={(e) => setManualId(e.target.value)}
-              placeholder="act_944799492536152 or 944799492536152"
-              required={useManual || accounts.length === 0}
-              className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400 font-mono"
-            />
-            {useManual && (
-              <button
-                type="button"
-                onClick={() => { setUseManual(false); setManualId(""); }}
-                className="text-xs text-slate-400 hover:text-slate-600 underline"
-              >
-                ← Back to dropdown
-              </button>
-            )}
-          </>
+          !fetchingAccounts && (
+            <>
+              {!useManual && (
+                <p className="text-xs text-slate-500">
+                  Paste your token above and click <strong>Fetch accounts</strong>, or enter your
+                  ID manually below.
+                </p>
+              )}
+              <input
+                type="text"
+                value={manualId}
+                onChange={(e) => setManualId(e.target.value)}
+                placeholder="act_944799492536152 or 944799492536152"
+                className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400 font-mono"
+              />
+              {useManual && (
+                <button
+                  type="button"
+                  onClick={() => { setUseManual(false); setManualId(""); }}
+                  className="text-xs text-slate-400 hover:text-slate-600 underline"
+                >
+                  ← Back to dropdown
+                </button>
+              )}
+            </>
+          )
         )}
 
         {fetchError && (
           <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            {fetchError} — enter your account ID manually below.
+            {fetchError} — enter your account ID manually above.
           </p>
         )}
       </div>
 
       {/* Security note */}
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2 text-xs text-amber-800">
-        <span className="flex-shrink-0">🔒</span>
-        <span>
-          Your token is used only to fetch your Meta data and is never stored. For extra safety,
-          use a token with <strong>read-only</strong> permissions (
-          <code className="bg-amber-100 px-1 rounded">ads_read</code> only).
-        </span>
-      </div>
+      {!savedSession && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2 text-xs text-amber-800">
+          <span className="flex-shrink-0">🔒</span>
+          <span>
+            Your token is exchanged for a 60-day session token and saved only in your browser.
+            It is never stored on our servers. Click <strong>Clear session</strong> at any time
+            to remove it.
+          </span>
+        </div>
+      )}
 
       <button
         type="submit"
