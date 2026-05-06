@@ -39,7 +39,7 @@ export default function Home() {
       const res = await fetch("/api/meta-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, accountId }),
+        body: JSON.stringify({ accountId }),
       });
 
       const data = await res.json();

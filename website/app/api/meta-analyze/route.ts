@@ -32,11 +32,19 @@ async function generateWithRetry(contents: string, retries = 3): Promise<string>
 
 export async function POST(req: NextRequest) {
   try {
-    const { token, accountId } = await req.json();
+    const { accountId } = await req.json();
+    const token = process.env.META_SYSTEM_TOKEN;
 
-    if (!token || !accountId) {
+    if (!token) {
       return NextResponse.json(
-        { error: "Access token and account ID are required." },
+        { error: "META_SYSTEM_TOKEN is not configured." },
+        { status: 500 }
+      );
+    }
+
+    if (!accountId) {
+      return NextResponse.json(
+        { error: "Account ID is required." },
         { status: 400 }
       );
     }
