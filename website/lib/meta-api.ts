@@ -276,3 +276,158 @@ export async function fetchMetaData(
     fetchedAt: new Date().toISOString(),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Organic data types
+// ---------------------------------------------------------------------------
+
+export interface PagePost {
+  id: string;
+  message?: string;
+  story?: string;
+  created_time: string;
+  full_picture?: string;
+  attachments?: { data: { media_type?: string; type?: string }[] };
+  insights?: {
+    data: {
+      name: string;
+      values: { value: number | Record<string, number> }[];
+    }[];
+  };
+}
+
+export interface IgMedia {
+  id: string;
+  caption?: string;
+  media_type: string;
+  timestamp: string;
+  like_count?: number;
+  comments_count?: number;
+  insights?: {
+    data: { name: string; values: { value: number }[] }[];
+  };
+}
+
+export interface PageInsightValue {
+  name: string;
+  values: { value: number | Record<string, number>; end_time: string }[];
+}
+
+export interface OrganicData {
+  page: {
+    id: string;
+    name: string;
+    fan_count: number;
+    followers_count: number;
+  } | null;
+  pageInsights: PageInsightValue[];
+  pagePosts: PagePost[];
+  igInsights: PageInsightValue[];
+  igAudienceDemographics: PageInsightValue[];
+  igMedia: IgMedia[];
+  fetchedAt: string;
+}
+
+// ---------------------------------------------------------------------------
+// Organic fetch
+// ---------------------------------------------------------------------------
+
+export async function fetchOrganicData(
+  token: string,
+  facebookPageId: string,
+  instagramAccountId: string
+): Promise<OrganicData> {
+  const t = token.trim();
+
+  const [page, pageInsights, pagePosts, igInsights, igAudienceDemographics, igMedia] =
+    await Promise.all([
+      // Page summary
+      gql<{ id: string; name: string; fan_count: number; followers_count: number }>(
+        `/${facebookPageId}`,
+        { fields: "id,name,fan_count,followers_count", access_token: t }
+      ).catch(() => null),
+
+      // Page-level 28-day metrics
+      gql<{ data: PageInsightValue[] }>(
+        `/${facebookPageId}/insights`,
+        {
+          metric: [
+            "page_impressions",
+            "page_reach",
+            "page_engaged_users",
+            "page_post_engagements",
+            "page_views_total",
+            "page_fan_adds_unique",
+          ].join(","),
+          period: "days_28",
+          access_token: t,
+        }
+      ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
+
+      // Recent FB posts with per-post metrics
+      paginate<PagePost>(`/${facebookPageId}/posts`, {
+        fields: [
+          "id",
+          "message",
+          "story",
+          "created_time",
+          "full_picture",
+          "attachments{media_type,type}",
+          "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
+        ].join(","),
+        limit: "25",
+        access_token: t,
+      }).catch(() => [] as PagePost[]),
+
+      // Instagram account-level insights
+      gql<{ data: PageInsightValue[] }>(
+        `/${instagramAccountId}/insights`,
+        {
+          metric: [
+            "reach",
+            "impressions",
+            "profile_views",
+            "follower_count",
+            "accounts_engaged",
+          ].join(","),
+          period: "days_28",
+          access_token: t,
+        }
+      ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
+
+      // Instagram audience demographics
+      gql<{ data: PageInsightValue[] }>(
+        `/${instagramAccountId}/insights`,
+        {
+          metric: ["audience_gender_age", "audience_country", "audience_city"].join(","),
+          period: "lifetime",
+          access_token: t,
+        }
+      ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
+
+      // Recent IG posts with per-post metrics
+      paginate<IgMedia>(`/${instagramAccountId}/media`, {
+        fields: [
+          "id",
+          "caption",
+          "media_type",
+          "timestamp",
+          "like_count",
+          "comments_count",
+          "insights.metric(reach,impressions,engagement,saved)",
+        ].join(","),
+        limit: "25",
+        access_token: t,
+      }).catch(() => [] as IgMedia[]),
+    ]);
+
+  return {
+    page,
+    pageInsights,
+    pagePosts,
+    igInsights,
+    igAudienceDemographics,
+    igMedia,
+    fetchedAt: new Date().toISOString(),
+  };
+}

@@ -4,9 +4,11 @@ import { useState, useRef } from "react";
 import ConnectForm from "@/components/ConnectForm";
 import InputForm from "@/components/InputForm";
 import ResultsDashboard from "@/components/ResultsDashboard";
-import type { AdMetrics, AnalysisResult } from "@/lib/types";
+import ResonancePanel from "@/components/ResonancePanel";
+import type { AdMetrics, AnalysisResult, ResonanceResult } from "@/lib/types";
 
 type Mode = "connect" | "manual";
+type ResultTab = "health" | "resonance";
 
 interface AccountMeta {
   name: string;
@@ -24,8 +26,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [resonanceResult, setResonanceResult] = useState<ResonanceResult | null>(null);
+  const [resonanceClientName, setResonanceClientName] = useState<string>("");
+  const [resonanceLoading, setResonanceLoading] = useState(false);
+  const [resonanceError, setResonanceError] = useState<string | null>(null);
   const [account, setAccount] = useState<AccountMeta | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ResultTab>("health");
   const resultsRef = useRef<HTMLDivElement>(null);
 
   async function handleConnect(token: string, accountId: string) {
@@ -33,7 +40,10 @@ export default function Home() {
     setError(null);
     setResult(null);
     setAccount(null);
-    setLoadingMsg("Fetching your Meta account data…");
+    setResonanceResult(null);
+    setResonanceError(null);
+    setActiveTab("health");
+    setLoadingMsg("Fetching Meta account data…");
 
     try {
       const res = await fetch("/api/meta-analyze", {
@@ -41,16 +51,15 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountId }),
       });
-
       const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error ?? "Analysis failed");
-      }
+      if (!res.ok || data.error) throw new Error(data.error ?? "Analysis failed");
 
       setResult(data.result);
       setAccount(data.account ?? null);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+
+      // Kick off resonance analysis in the background (non-blocking)
+      fetchResonance(accountId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -59,11 +68,35 @@ export default function Home() {
     }
   }
 
+  async function fetchResonance(accountId: string) {
+    setResonanceLoading(true);
+    setResonanceError(null);
+    try {
+      const res = await fetch("/api/resonance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId }),
+      });
+      const data = await res.json();
+      if (res.status === 404) return; // No client config — silently skip
+      if (!res.ok || data.error) throw new Error(data.error);
+      setResonanceResult(data.result);
+      setResonanceClientName(data.clientName ?? "");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Resonance analysis failed";
+      // Only show error if it's not a "no config" situation
+      if (!msg.includes("No client config")) setResonanceError(msg);
+    } finally {
+      setResonanceLoading(false);
+    }
+  }
+
   async function handleManual(metrics: AdMetrics) {
     setLoading(true);
     setError(null);
     setResult(null);
     setAccount(null);
+    setResonanceResult(null);
     setLoadingMsg("Running your 50-check audit…");
 
     try {
@@ -72,13 +105,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ metrics }),
       });
-
       const data = await res.json();
-
-      if (!res.ok || data.error) {
-        throw new Error(data.error ?? "Analysis failed");
-      }
-
+      if (!res.ok || data.error) throw new Error(data.error ?? "Analysis failed");
       setResult(data.result);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (err) {
@@ -91,10 +119,15 @@ export default function Home() {
 
   function handleReset() {
     setResult(null);
+    setResonanceResult(null);
+    setResonanceError(null);
     setError(null);
     setAccount(null);
+    setActiveTab("health");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  const hasResonance = resonanceResult !== null || resonanceLoading || resonanceError !== null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -109,7 +142,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">
             <span className="hidden sm:inline">Powered by</span>
-            <span className="font-semibold text-slate-700">Claude Sonnet</span>
+            <span className="font-semibold text-slate-700">Gemini 2.5</span>
             <span className="bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
               50 checks
             </span>
@@ -126,12 +159,11 @@ export default function Home() {
               <span className="text-blue-600"> in 60 Seconds</span>
             </h1>
             <p className="text-slate-600 text-base leading-relaxed">
-              Connect your Meta account and get a live 50-check AI audit — Pixel/CAPI,
-              creative fatigue, account structure, and targeting. Benchmarked against
-              2026 industry standards.
+              Connect your Meta account and get a live AI audit — ad health checks plus
+              audience resonance scored against your target persona.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-4">
-              {["50-check audit", "Health score 0–100", "Quick wins", "Real account data", "Andromeda analysis", "Creative fatigue"].map((f) => (
+              {["50-check audit", "Health score", "Resonance score", "Real account data", "Persona-matched recommendations"].map((f) => (
                 <span key={f} className="text-xs bg-blue-50 text-blue-700 font-medium px-3 py-1 rounded-full border border-blue-100">
                   {f}
                 </span>
@@ -149,8 +181,8 @@ export default function Home() {
             <h3 className="font-semibold text-slate-800 text-lg mb-1">{loadingMsg}</h3>
             <p className="text-slate-500 text-sm">
               {mode === "connect"
-                ? "Fetching campaigns, ad sets, creatives, pixels, audiences, and 30-day insights from the Meta Marketing API — then running the full audit."
-                : "Claude is evaluating all 50 checks across Pixel/CAPI, creative, structure, and audience. This takes about 20 seconds."}
+                ? "Fetching campaigns, ad sets, creatives, pixels, audiences, and 30-day insights — then running the full audit."
+                : "Evaluating all 50 checks across Pixel/CAPI, creative, structure, and audience. This takes about 20 seconds."}
             </p>
           </div>
         )}
@@ -160,19 +192,12 @@ export default function Home() {
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
             <p className="text-red-800 font-semibold mb-1">Something went wrong</p>
             <p className="text-red-600 text-sm">{error}</p>
-            {error.toLowerCase().includes("oauthexception") ||
-            error.toLowerCase().includes("token") ? (
+            {error.toLowerCase().includes("oauthexception") || error.toLowerCase().includes("token") ? (
               <p className="text-red-500 text-xs mt-2">
                 Your access token may have expired. Generate a new one at{" "}
-                <a
-                  href="https://developers.facebook.com/tools/explorer"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
+                <a href="https://developers.facebook.com/tools/explorer" target="_blank" rel="noopener noreferrer" className="underline">
                   Graph API Explorer
-                </a>
-                .
+                </a>.
               </p>
             ) : (
               <p className="text-red-500 text-xs mt-2">
@@ -185,14 +210,11 @@ export default function Home() {
         {/* Input forms */}
         {!loading && !result && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            {/* Mode tabs */}
             <div className="flex border-b border-slate-200">
               <button
                 onClick={() => setMode("connect")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "connect"
-                    ? "bg-white text-blue-600 border-b-2 border-blue-600"
-                    : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "connect" ? "bg-white text-blue-600 border-b-2 border-blue-600" : "text-slate-500 hover:text-slate-700 bg-slate-50"
                 }`}
               >
                 📡 Connect Meta Account
@@ -200,15 +222,12 @@ export default function Home() {
               <button
                 onClick={() => setMode("manual")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "manual"
-                    ? "bg-white text-blue-600 border-b-2 border-blue-600"
-                    : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "manual" ? "bg-white text-blue-600 border-b-2 border-blue-600" : "text-slate-500 hover:text-slate-700 bg-slate-50"
                 }`}
               >
                 ✏️ Enter Metrics Manually
               </button>
             </div>
-
             <div className="p-6 sm:p-8">
               {mode === "connect" ? (
                 <ConnectForm onAnalyze={handleConnect} loading={loading} />
@@ -219,7 +238,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Account summary bar (shown with results) */}
+        {/* Account summary bar */}
         {result && account && !loading && (
           <div className="bg-blue-600 text-white rounded-2xl px-6 py-4 flex flex-wrap items-center gap-4">
             <div>
@@ -247,18 +266,76 @@ export default function Home() {
                 </p>
               </div>
             )}
-            <div className="ml-auto text-right">
+            <div className="ml-auto flex items-center gap-3">
               <p className="text-blue-200 text-xs">
                 Data fetched {new Date(account.fetchedAt).toLocaleTimeString()}
               </p>
+              <button
+                onClick={handleReset}
+                className="text-xs text-blue-200 hover:text-white underline"
+              >
+                ← New analysis
+              </button>
             </div>
           </div>
         )}
 
-        {/* Results */}
+        {/* Results tabs */}
         {result && !loading && (
           <div ref={resultsRef}>
-            <ResultsDashboard result={result} onReset={handleReset} />
+            {hasResonance && (
+              <div className="flex gap-1 mb-4 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+                <button
+                  onClick={() => setActiveTab("health")}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                    activeTab === "health" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Health Score
+                </button>
+                <button
+                  onClick={() => setActiveTab("resonance")}
+                  className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
+                    activeTab === "resonance" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"
+                  }`}
+                >
+                  Resonance Score
+                  {resonanceLoading && (
+                    <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {activeTab === "health" && (
+              <ResultsDashboard result={result} onReset={handleReset} />
+            )}
+
+            {activeTab === "resonance" && (
+              <>
+                {resonanceLoading && (
+                  <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                    <div className="flex justify-center mb-4">
+                      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                    <p className="text-slate-600 font-medium">Analyzing audience resonance…</p>
+                    <p className="text-slate-400 text-sm mt-1">Fetching organic data and comparing against your persona doc</p>
+                  </div>
+                )}
+                {resonanceError && (
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <p className="text-red-700 font-semibold text-sm">Resonance analysis failed</p>
+                    <p className="text-red-600 text-sm mt-1">{resonanceError}</p>
+                  </div>
+                )}
+                {resonanceResult && (
+                  <ResonancePanel result={resonanceResult} clientName={resonanceClientName} />
+                )}
+              </>
+            )}
           </div>
         )}
       </main>
@@ -267,12 +344,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs text-slate-400">
           <p>
             Built with{" "}
-            <a
-              href="https://github.com/zoeresonance/claude-ads"
-              className="text-slate-500 hover:text-blue-600 underline transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="https://github.com/zoeresonance/claude-ads" className="text-slate-500 hover:text-blue-600 underline transition-colors" target="_blank" rel="noopener noreferrer">
               claude-ads
             </a>{" "}
             · Audit framework v1.5 · Meta Marketing API v21.0 · Benchmarks updated 2026

@@ -48,6 +48,49 @@ export interface AnalysisResult {
   organicInsights?: string;
 }
 
+export interface ResonanceDimension {
+  score: number;
+  finding: string;
+}
+
+export interface ResonancePerformer {
+  type: "ad" | "facebook_post" | "instagram_post";
+  identifier: string;
+  metric: string;
+  whyItLands?: string;
+  whyItMisses?: string;
+}
+
+export interface ResonanceRecommendation {
+  type: "ad" | "post" | "audience" | "creative" | "messaging";
+  target: string;
+  currentState: string;
+  suggestion: string;
+  reasoning: string;
+  impact: "HIGH" | "MEDIUM" | "LOW";
+}
+
+export interface ResonanceResult {
+  resonanceScore: number;
+  grade: Grade;
+  summary: string;
+  dimensions: {
+    audienceReception: ResonanceDimension;
+    contentPerformance: ResonanceDimension;
+    messagingAlignment: ResonanceDimension;
+    crossChannelConsistency: ResonanceDimension;
+  };
+  topPerformers: ResonancePerformer[];
+  bottomPerformers: ResonancePerformer[];
+  recommendations: ResonanceRecommendation[];
+  personaFit: {
+    primaryPersonaName: string;
+    matchScore: number;
+    strengths: string[];
+    gaps: string[];
+  };
+}
+
 export interface AdMetrics {
   // Account
   businessType: string;
