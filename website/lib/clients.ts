@@ -12,7 +12,6 @@ export interface ClientConfig {
 }
 
 const CLIENTS_DIR = path.join(process.cwd(), "clients");
-const REPO_ROOT = path.join(process.cwd(), "..");
 
 function loadClients(): Map<string, ClientConfig> {
   const map = new Map<string, ClientConfig>();
@@ -29,9 +28,7 @@ function loadClients(): Map<string, ClientConfig> {
       const config: ClientConfig = {
         ...raw,
         clientDir,
-        auditDocPath: (raw.auditDoc ?? "audit.md").startsWith("Clients/")
-          ? path.join(REPO_ROOT, raw.auditDoc)
-          : path.join(clientDir, raw.auditDoc ?? "audit.md"),
+        auditDocPath: path.join(clientDir, raw.auditDoc ?? "audit.md"),
       };
       if (config.adAccountId) {
         const normalized = config.adAccountId.startsWith("act_")
