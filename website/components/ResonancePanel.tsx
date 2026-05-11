@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation } from "@/lib/types";
 
 interface Props {
@@ -86,23 +85,28 @@ function ScorePanel({
   data,
   dimensionLabels,
   icon,
+  label,
+  accentColor,
 }: {
   data: ResonanceScoreResult;
   dimensionLabels: Record<string, string>;
   icon: string;
+  label: string;
+  accentColor: string;
 }) {
   const gradeClass = GRADE_COLORS[data.grade] ?? GRADE_COLORS.C;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div className="space-y-4">
+      {/* Score header */}
+      <div className={`bg-white rounded-2xl border-2 ${accentColor} shadow-sm p-6`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{icon}</span>
-              <p className="text-sm text-slate-600 max-w-xl">{data.summary}</p>
+              <h3 className="text-base font-bold text-slate-900">{label}</h3>
             </div>
+            <p className="text-sm text-slate-600 max-w-xl">{data.summary}</p>
           </div>
           <div className="flex items-center gap-4 shrink-0">
             <div className="text-center">
@@ -118,7 +122,7 @@ function ScorePanel({
 
       {/* Dimensions */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-semibold text-slate-800 mb-4">Score Breakdown</h3>
+        <h4 className="font-semibold text-slate-800 mb-4">Score Breakdown</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {Object.entries(data.dimensions).map(([key, dim]) => (
             <ScoreRing key={key} score={dim.score} label={dimensionLabels[key] ?? key} />
@@ -138,13 +142,13 @@ function ScorePanel({
 
       {/* Persona Fit */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-semibold text-slate-800 mb-3">
+        <h4 className="font-semibold text-slate-800 mb-3">
           Persona Fit —{" "}
           <span className="text-blue-600">{data.personaFit.primaryPersonaName}</span>
           <span className="ml-2 text-sm font-normal text-slate-500">
             Match: {data.personaFit.matchScore}/100
           </span>
-        </h3>
+        </h4>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <div className="text-xs font-semibold text-green-700 mb-2">✓ Strengths</div>
@@ -172,7 +176,7 @@ function ScorePanel({
       {/* Performers */}
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h3 className="font-semibold text-slate-800 mb-3">Top Performers</h3>
+          <h4 className="font-semibold text-slate-800 mb-3">Top Performers</h4>
           <div className="space-y-3">
             {data.topPerformers.map((p, i) => (
               <div key={i} className="text-sm border-l-2 border-green-400 pl-3">
@@ -184,7 +188,7 @@ function ScorePanel({
           </div>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h3 className="font-semibold text-slate-800 mb-3">Underperformers</h3>
+          <h4 className="font-semibold text-slate-800 mb-3">Underperformers</h4>
           <div className="space-y-3">
             {data.bottomPerformers.map((p, i) => (
               <div key={i} className="text-sm border-l-2 border-red-300 pl-3">
@@ -199,12 +203,12 @@ function ScorePanel({
 
       {/* Recommendations */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-semibold text-slate-800 mb-4">
+        <h4 className="font-semibold text-slate-800 mb-4">
           Recommendations
           <span className="ml-2 text-sm font-normal text-slate-400">
             {data.recommendations.length} actions
           </span>
-        </h3>
+        </h4>
         <div className="space-y-3">
           {data.recommendations.map((rec, i) => (
             <RecommendationCard key={i} rec={rec} index={i} />
@@ -216,71 +220,46 @@ function ScorePanel({
 }
 
 export default function ResonancePanel({ result, clientName }: Props) {
-  const [activeTab, setActiveTab] = useState<"ads" | "organic">("ads");
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">🎯</span>
-          <h2 className="text-lg font-bold text-slate-900">Resonance Score</h2>
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{clientName}</span>
-        </div>
-
-        {/* Score summary row */}
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => setActiveTab("ads")}
-            className={`rounded-xl border-2 p-4 text-left transition-colors ${
-              activeTab === "ads"
-                ? "border-blue-500 bg-blue-50"
-                : "border-slate-200 bg-white hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-slate-700">📣 Ads Resonance</span>
-              <span className={`text-lg font-bold px-2 py-0.5 rounded-lg border ${GRADE_COLORS[result.ads.grade] ?? GRADE_COLORS.C}`}>
-                {result.ads.grade}
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900">{result.ads.score}<span className="text-sm font-normal text-slate-400 ml-1">/ 100</span></div>
-            <div className="text-xs text-slate-500 mt-1">Paid campaigns · creative · targeting</div>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("organic")}
-            className={`rounded-xl border-2 p-4 text-left transition-colors ${
-              activeTab === "organic"
-                ? "border-blue-500 bg-blue-50"
-                : "border-slate-200 bg-white hover:border-slate-300"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold text-slate-700">🌱 Organic Resonance</span>
-              <span className={`text-lg font-bold px-2 py-0.5 rounded-lg border ${GRADE_COLORS[result.organic.grade] ?? GRADE_COLORS.C}`}>
-                {result.organic.grade}
-              </span>
-            </div>
-            <div className="text-3xl font-bold text-slate-900">{result.organic.score}<span className="text-sm font-normal text-slate-400 ml-1">/ 100</span></div>
-            <div className="text-xs text-slate-500 mt-1">Facebook & Instagram posts</div>
-          </button>
-        </div>
+    <div className="space-y-8">
+      {/* Page header */}
+      <div className="flex items-center gap-2">
+        <span className="text-lg">🎯</span>
+        <h2 className="text-lg font-bold text-slate-900">Resonance Score</h2>
+        <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{clientName}</span>
       </div>
 
-      {/* Active panel */}
-      {activeTab === "ads" ? (
-        <ScorePanel data={result.ads} dimensionLabels={ADS_DIMENSION_LABELS} icon="📣" />
-      ) : (
-        <>
-          <ScorePanel data={result.organic} dimensionLabels={ORGANIC_DIMENSION_LABELS} icon="🌱" />
-          <p className="text-xs text-slate-400 text-center px-4">
-            Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
-            not the selected date range — Meta&apos;s API does not support custom ranges for that
-            metric. All other metrics respect the selected range.
-          </p>
-        </>
-      )}
+      {/* Ads resonance */}
+      <ScorePanel
+        data={result.ads}
+        dimensionLabels={ADS_DIMENSION_LABELS}
+        icon="📣"
+        label="Ads Resonance"
+        accentColor="border-blue-200"
+      />
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-slate-200" />
+        <span className="text-xs text-slate-400 font-medium">ORGANIC</span>
+        <div className="flex-1 h-px bg-slate-200" />
+      </div>
+
+      {/* Organic resonance */}
+      <ScorePanel
+        data={result.organic}
+        dimensionLabels={ORGANIC_DIMENSION_LABELS}
+        icon="🌱"
+        label="Organic Resonance — Facebook & Instagram"
+        accentColor="border-green-200"
+      />
+
+      {/* Data caveat */}
+      <p className="text-xs text-slate-400 text-center px-4">
+        Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
+        not the selected date range — Meta&apos;s API does not support custom ranges for that
+        metric. All other metrics respect the selected range.
+      </p>
     </div>
   );
 }
