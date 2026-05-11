@@ -14,6 +14,9 @@ out/
 .env.test.local
 .env.production.local
 
+# typescript build cache
+tsconfig.tsbuildinfo
+
 # misc
 .DS_Store
 *.pem
