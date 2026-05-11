@@ -1,20 +1,25 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
 import { fetchMetaData, fetchOrganicData } from "@/lib/meta-api";
-import { buildResonanceUserMessage, RESONANCE_SYSTEM_PROMPT } from "@/lib/resonance-prompt";
+import {
+  ADS_RESONANCE_SYSTEM_PROMPT,
+  ORGANIC_RESONANCE_SYSTEM_PROMPT,
+  buildAdsResonanceMessage,
+  buildOrganicResonanceMessage,
+} from "@/lib/resonance-prompt";
 import { getClientForAccount, readAuditDoc } from "@/lib/clients";
-import type { ResonanceResult } from "@/lib/types";
+import type { ResonanceResult, ResonanceScoreResult } from "@/lib/types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY ?? "" });
 
-async function generateWithRetry(contents: string, retries = 3): Promise<string> {
+async function generateWithRetry(systemPrompt: string, contents: string, retries = 3): Promise<string> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-2.5-flash",
         contents,
         config: {
-          systemInstruction: RESONANCE_SYSTEM_PROMPT,
+          systemInstruction: systemPrompt,
           maxOutputTokens: 65536,
           thinkingConfig: { thinkingBudget: 0 },
         },
@@ -29,6 +34,10 @@ async function generateWithRetry(contents: string, retries = 3): Promise<string>
     }
   }
   throw new Error("Max retries exceeded");
+}
+
+function stripMarkdown(raw: string): string {
+  return raw.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "");
 }
 
 export async function POST(req: NextRequest) {
@@ -75,12 +84,16 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
-    const userMessage = buildResonanceUserMessage(auditDoc, organic, adData);
+    // Run both resonance analyses in parallel
+    const [adsRaw, organicRaw] = await Promise.all([
+      generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData)),
+      generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic)),
+    ]);
 
-    let rawText = await generateWithRetry(userMessage);
-    rawText = rawText.replace(/^```(?:json)?\n?/i, "").replace(/\n?```$/i, "");
+    const adsResult: ResonanceScoreResult = JSON.parse(stripMarkdown(adsRaw));
+    const organicResult: ResonanceScoreResult = JSON.parse(stripMarkdown(organicRaw));
 
-    const result: ResonanceResult = JSON.parse(rawText);
+    const result: ResonanceResult = { ads: adsResult, organic: organicResult };
     return NextResponse.json({ result, clientName: client.name });
   } catch (error) {
     console.error("Resonance error:", error);

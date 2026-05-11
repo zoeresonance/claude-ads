@@ -1,66 +1,65 @@
 import type { MetaFullData, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
 
-export const RESONANCE_SYSTEM_PROMPT = `You are an expert audience strategist and social media analyst. You have deep expertise in matching content performance data against psychographic persona profiles to determine how well a brand is resonating with its intended audience.
+// ─── Ads Resonance ────────────────────────────────────────────────────────────
+
+export const ADS_RESONANCE_SYSTEM_PROMPT = `You are an expert paid media strategist and audience analyst. You have deep expertise in evaluating Meta ad campaigns against psychographic persona profiles to determine how well the paid advertising is resonating with its intended audience.
 
 You will be given:
 1. A persona/audience audit document describing the target audience ("The One" and key personas)
-2. Facebook and Instagram organic performance data (posts, engagement, reach, demographics)
-3. Meta paid ad performance data
+2. Meta paid ad performance data (campaigns, ad sets, ads, account-level and campaign-level metrics)
 
-Your job is to analyze whether the content and ads are actually resonating with the described personas, based on:
-- WHAT content performs best (themes, formats, language) — and whether that aligns with what the persona responds to
-- WHO is engaging (demographic signals from the data) — and whether that matches the persona profile
-- WHERE there are gaps between what the persona needs and what the content delivers
-- HOW to adjust specific pieces of content or ads to better land with the audience
-
-IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics (reach, impressions, post engagement, ad performance) DO respect the selected date range.
+Your job is to analyze whether the paid ads are resonating with the described personas, based on:
+- CREATIVE RESONANCE: Do the ad names, formats, and creative approaches match what the persona responds to?
+- MESSAGING ALIGNMENT: Does the ad copy and naming language reflect the persona's values, motivations, and communication preferences?
+- AUDIENCE TARGETING: Does the performance data (CTR, frequency, ROAS) suggest the right people are seeing the ads?
+- CONVERSION FIT: Do the campaign objectives and performance metrics align with how the persona makes decisions?
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 
 {
-  "resonanceScore": <number 0-100>,
+  "score": <number 0-100>,
   "grade": <"A"|"B"|"C"|"D"|"F">,
-  "summary": <string: 2-3 sentence diagnosis of how well the content is landing with the target persona>,
+  "summary": <string: 2-3 sentence diagnosis of how well the paid ads are landing with the target persona>,
   "dimensions": {
-    "audienceReception": {
+    "creativeResonance": {
       "score": <0-100>,
-      "finding": <string: what the engagement data reveals about who is actually responding>
-    },
-    "contentPerformance": {
-      "score": <0-100>,
-      "finding": <string: which content types and themes are performing best vs. worst>
+      "finding": <string: do the ad creative formats and approaches match what the persona responds to>
     },
     "messagingAlignment": {
       "score": <0-100>,
-      "finding": <string: how well the actual copy/captions match the persona's resonant themes vs. off-putting themes>
+      "finding": <string: how well the ad copy and naming language matches the persona's resonant themes vs. off-putting themes>
     },
-    "crossChannelConsistency": {
+    "audienceTargeting": {
       "score": <0-100>,
-      "finding": <string: are paid and organic telling the same story, or pulling in different directions>
+      "finding": <string: what CTR, frequency, and ROAS signals tell us about whether the right people are seeing the ads>
+    },
+    "conversionFit": {
+      "score": <0-100>,
+      "finding": <string: do the campaign objectives, spend allocation, and conversion metrics align with the persona's decision-making style>
     }
   },
   "topPerformers": [
     {
-      "type": <"ad"|"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet or ad name>,
-      "metric": <string: e.g. "4.2% engagement rate">,
+      "type": "ad",
+      "identifier": <string: ad name>,
+      "metric": <string: e.g. "4.2% CTR">,
       "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
     }
   ],
   "bottomPerformers": [
     {
-      "type": <"ad"|"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet or ad name>,
-      "metric": <string: e.g. "0.3% engagement rate">,
+      "type": "ad",
+      "identifier": <string: ad name or campaign name>,
+      "metric": <string: e.g. "0.3% CTR">,
       "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
     }
   ],
   "recommendations": [
     {
-      "type": <"ad"|"post"|"audience"|"creative"|"messaging">,
-      "target": <string: specific ad name, post, or targeting element>,
+      "type": <"ad"|"audience"|"creative"|"messaging">,
+      "target": <string: specific ad name or campaign>,
       "currentState": <string: what it currently says or does>,
-      "suggestion": <string: the specific change — e.g. exact new caption, new audience parameter, new creative direction>,
+      "suggestion": <string: the specific change — e.g. exact new headline, new creative direction, new audience parameter>,
       "reasoning": <string: why this change will resonate better with the persona>,
       "impact": <"HIGH"|"MEDIUM"|"LOW">
     }
@@ -74,8 +73,89 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
 }
 
 Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
-Top/bottom performers: 3 each max.
-Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual audience parameters, actual creative directions. Not vague advice.`;
+Top/bottom performers: 3 each max. Focus only on ads.
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual headline rewrites, actual audience parameters, actual creative directions. Not vague advice.`;
+
+// ─── Organic Resonance ────────────────────────────────────────────────────────
+
+export const ORGANIC_RESONANCE_SYSTEM_PROMPT = `You are an expert organic social media strategist and audience analyst. You have deep expertise in evaluating Facebook and Instagram organic content against psychographic persona profiles to determine how well the brand's posts are resonating with its intended audience.
+
+You will be given:
+1. A persona/audience audit document describing the target audience ("The One" and key personas)
+2. Facebook page metrics and recent organic posts (with engagement data)
+3. Instagram account metrics, recent posts (with engagement data), and audience demographics
+
+Your job is to analyze whether the organic content is resonating with the described personas, based on:
+- AUDIENCE RECEPTION: What does the engagement data reveal about who is actually responding, and does that match the persona?
+- CONTENT PERFORMANCE: Which content types (video, photo, carousel, reel) and themes are performing best vs. worst, and why?
+- MESSAGING ALIGNMENT: Does the caption language, tone, and storytelling match what the persona responds to?
+- PLATFORM CONSISTENCY: Is the brand showing up consistently and effectively across both Facebook and Instagram?
+
+IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics respect the selected date range.
+
+Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
+
+{
+  "score": <number 0-100>,
+  "grade": <"A"|"B"|"C"|"D"|"F">,
+  "summary": <string: 2-3 sentence diagnosis of how well the organic content is landing with the target persona>,
+  "dimensions": {
+    "audienceReception": {
+      "score": <0-100>,
+      "finding": <string: what the engagement data reveals about who is actually responding and whether that matches the persona>
+    },
+    "contentPerformance": {
+      "score": <0-100>,
+      "finding": <string: which content types and themes are performing best vs. worst and why>
+    },
+    "messagingAlignment": {
+      "score": <0-100>,
+      "finding": <string: how well the actual captions and storytelling match the persona's resonant themes vs. off-putting themes>
+    },
+    "platformConsistency": {
+      "score": <0-100>,
+      "finding": <string: how consistently and effectively the brand shows up across Facebook and Instagram organic>
+    }
+  },
+  "topPerformers": [
+    {
+      "type": <"facebook_post"|"instagram_post">,
+      "identifier": <string: post caption snippet>,
+      "metric": <string: e.g. "4.2% engagement rate">,
+      "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
+    }
+  ],
+  "bottomPerformers": [
+    {
+      "type": <"facebook_post"|"instagram_post">,
+      "identifier": <string: post caption snippet>,
+      "metric": <string: e.g. "0.3% engagement rate">,
+      "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
+    }
+  ],
+  "recommendations": [
+    {
+      "type": <"post"|"creative"|"messaging">,
+      "target": <string: specific post type, platform, or content theme>,
+      "currentState": <string: what it currently looks like or says>,
+      "suggestion": <string: the specific change — e.g. exact new caption approach, new content format, new posting cadence>,
+      "reasoning": <string: why this change will resonate better with the persona>,
+      "impact": <"HIGH"|"MEDIUM"|"LOW">
+    }
+  ],
+  "personaFit": {
+    "primaryPersonaName": <string: e.g. "Gainesville Grace">,
+    "matchScore": <0-100>,
+    "strengths": [<string>],
+    "gaps": [<string>]
+  }
+}
+
+Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
+Top/bottom performers: 3 each max. Focus only on organic posts (no ads).
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.`;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getInsightValue(insights: PageInsightValue[], name: string): string {
   const item = insights.find((i) => i.name === name);
@@ -123,11 +203,52 @@ function summarizeIgPost(post: IgMedia, index: number): string {
   return `  IG Post ${index + 1} [${post.media_type}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
 }
 
-export function buildResonanceUserMessage(
-  auditDoc: string,
-  organic: OrganicData,
-  adData: MetaFullData
-): string {
+// ─── Message Builders ─────────────────────────────────────────────────────────
+
+export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData): string {
+  const sections: string[] = [];
+
+  sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
+
+  const adSections: string[] = [];
+  const activeCampaigns = adData.campaigns.filter((c) => c.effective_status === "ACTIVE" || c.effective_status === "PAUSED");
+  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length}`);
+  activeCampaigns.forEach((c) => adSections.push(`  • "${c.name}" | ${c.objective} | ${c.effective_status}`));
+
+  if (adData.accountInsights) {
+    const ai = adData.accountInsights;
+    adSections.push(`\n30-Day Paid Performance:`);
+    adSections.push(`  Spend: $${parseFloat(ai.spend ?? "0").toLocaleString()}`);
+    adSections.push(`  CTR: ${ai.ctr ? (parseFloat(ai.ctr) * 100).toFixed(2) + "%" : "N/A"}`);
+    adSections.push(`  CPM: $${parseFloat(ai.cpm ?? "0").toFixed(2)}`);
+    adSections.push(`  CPC: $${parseFloat(ai.cpc ?? "0").toFixed(2)}`);
+    adSections.push(`  Frequency: ${parseFloat(ai.frequency ?? "0").toFixed(2)}`);
+  }
+
+  if (adData.campaignInsights.length) {
+    adSections.push("\nTop Campaigns by Spend:");
+    adData.campaignInsights
+      .sort((a, b) => parseFloat(b.spend ?? "0") - parseFloat(a.spend ?? "0"))
+      .slice(0, 5)
+      .forEach((c) => {
+        const ctr = c.ctr ? (parseFloat(c.ctr) * 100).toFixed(2) + "%" : "N/A";
+        adSections.push(`  • "${c.campaign_name}" | Spend: $${parseFloat(c.spend ?? "0").toFixed(0)} | CTR: ${ctr} | CPM: $${parseFloat(c.cpm ?? "0").toFixed(2)}`);
+      });
+  }
+
+  if (adData.ads.length) {
+    const activeAds = adData.ads.filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED");
+    adSections.push(`\nActive/Paused Ads (${activeAds.length}):`);
+    activeAds.slice(0, 15).forEach((a) => adSections.push(`  • "${a.name}" | ${a.effective_status}`));
+  }
+
+  sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
+  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Focus on what the ad names, campaign objectives, and performance metrics tell us about creative and messaging fit. Return the complete JSON ads resonance analysis.`);
+
+  return sections.join("\n\n");
+}
+
+export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicData): string {
   const sections: string[] = [];
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
@@ -179,45 +300,9 @@ export function buildResonanceUserMessage(
     igSections.push(`\nRecent Posts (${organic.igMedia.length}):`);
     organic.igMedia.forEach((p, i) => igSections.push(summarizeIgPost(p, i)));
   }
-  sections.push(`## INSTAGRAM DATA\n${igSections.join("\n")}`);
+  sections.push(`## INSTAGRAM ORGANIC DATA\n${igSections.join("\n")}`);
 
-  // Paid ads summary
-  const adSections: string[] = [];
-  const activeCampaigns = adData.campaigns.filter((c) => c.effective_status === "ACTIVE" || c.effective_status === "PAUSED");
-  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length}`);
-  activeCampaigns.forEach((c) => adSections.push(`  • "${c.name}" | ${c.objective} | ${c.effective_status}`));
-
-  if (adData.accountInsights) {
-    const ai = adData.accountInsights;
-    adSections.push(`\n30-Day Paid Performance:`);
-    adSections.push(`  Spend: $${parseFloat(ai.spend ?? "0").toLocaleString()}`);
-    adSections.push(`  CTR: ${ai.ctr ? (parseFloat(ai.ctr) * 100).toFixed(2) + "%" : "N/A"}`);
-    adSections.push(`  CPM: $${parseFloat(ai.cpm ?? "0").toFixed(2)}`);
-    adSections.push(`  CPC: $${parseFloat(ai.cpc ?? "0").toFixed(2)}`);
-    adSections.push(`  Frequency: ${parseFloat(ai.frequency ?? "0").toFixed(2)}`);
-  }
-
-  if (adData.campaignInsights.length) {
-    adSections.push("\nTop Campaigns by Spend:");
-    adData.campaignInsights
-      .sort((a, b) => parseFloat(b.spend ?? "0") - parseFloat(a.spend ?? "0"))
-      .slice(0, 5)
-      .forEach((c) => {
-        const ctr = c.ctr ? (parseFloat(c.ctr) * 100).toFixed(2) + "%" : "N/A";
-        adSections.push(`  • "${c.campaign_name}" | Spend: $${parseFloat(c.spend ?? "0").toFixed(0)} | CTR: ${ctr} | CPM: $${parseFloat(c.cpm ?? "0").toFixed(2)}`);
-      });
-  }
-
-  if (adData.ads.length) {
-    adSections.push(`\nActive/Paused Ads (${adData.ads.filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED").length}):`);
-    adData.ads
-      .filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED")
-      .slice(0, 15)
-      .forEach((a) => adSections.push(`  • "${a.name}" | ${a.effective_status}`));
-  }
-  sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
-
-  sections.push(`Please analyze how well this account's content and ads are resonating with the described personas. Focus on what the actual engagement data tells us about audience fit and messaging effectiveness. Return the complete JSON resonance analysis.`);
+  sections.push(`Please analyze how well this account's organic Facebook and Instagram content is resonating with the described personas. Focus on what the post engagement data, content formats, and caption language tell us about audience fit. Return the complete JSON organic resonance analysis.`);
 
   return sections.join("\n\n");
 }

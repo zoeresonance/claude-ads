@@ -70,16 +70,11 @@ export interface ResonanceRecommendation {
   impact: "HIGH" | "MEDIUM" | "LOW";
 }
 
-export interface ResonanceResult {
-  resonanceScore: number;
+export interface ResonanceScoreResult {
+  score: number;
   grade: Grade;
   summary: string;
-  dimensions: {
-    audienceReception: ResonanceDimension;
-    contentPerformance: ResonanceDimension;
-    messagingAlignment: ResonanceDimension;
-    crossChannelConsistency: ResonanceDimension;
-  };
+  dimensions: Record<string, ResonanceDimension>;
   topPerformers: ResonancePerformer[];
   bottomPerformers: ResonancePerformer[];
   recommendations: ResonanceRecommendation[];
@@ -89,6 +84,11 @@ export interface ResonanceResult {
     strengths: string[];
     gaps: string[];
   };
+}
+
+export interface ResonanceResult {
+  ads: ResonanceScoreResult;
+  organic: ResonanceScoreResult;
 }
 
 export interface AdMetrics {
