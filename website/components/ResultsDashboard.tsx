@@ -1,6 +1,7 @@
 "use client";
 
-import type { AnalysisResult, AuditCheck, QuickWin } from "@/lib/types";
+import type { AnalysisResult, AuditCheck, QuickWin, PerformanceData } from "@/lib/types";
+import PerformanceChart from "@/components/PerformanceChart";
 
 const CIRCUMFERENCE = 2 * Math.PI * 45; // r=45
 
@@ -189,9 +190,10 @@ function CheckRow({ check }: { check: AuditCheck }) {
 interface Props {
   result: AnalysisResult;
   onReset: () => void;
+  performance?: PerformanceData;
 }
 
-export default function ResultsDashboard({ result, onReset }: Props) {
+export default function ResultsDashboard({ result, onReset, performance }: Props) {
   const cats = result.categories;
   const fails = result.checks.filter((c) => c.result === "FAIL");
   const warnings = result.checks.filter((c) => c.result === "WARNING");
@@ -318,6 +320,20 @@ export default function ResultsDashboard({ result, onReset }: Props) {
             {result.emqRecommendations}
           </p>
         </div>
+      )}
+
+      {/* Ads Performance Chart */}
+      {performance && (
+        <PerformanceChart
+          title="Ad Performance"
+          metrics={[
+            { key: "spend",       label: "Spend",       data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+            { key: "ctr",         label: "CTR",         data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
+            { key: "cpm",         label: "CPM",         data: performance.ads.cpm,         format: "currency", color: "#d97706" },
+            { key: "impressions", label: "Impressions", data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
+            { key: "frequency",   label: "Frequency",   data: performance.ads.frequency,   format: "number",   color: "#db2777" },
+          ]}
+        />
       )}
 
       {/* Quick Wins */}

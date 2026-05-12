@@ -6,7 +6,7 @@ import InputForm from "@/components/InputForm";
 import ResultsDashboard from "@/components/ResultsDashboard";
 import ResonancePanel from "@/components/ResonancePanel";
 import type { DateRange } from "@/components/DateRangePicker";
-import type { AdMetrics, AnalysisResult, ResonanceResult } from "@/lib/types";
+import type { AdMetrics, AnalysisResult, ResonanceResult, PerformanceData } from "@/lib/types";
 
 type Mode = "connect" | "manual";
 type ResultTab = "health" | "resonance";
@@ -32,6 +32,7 @@ export default function Home() {
   const [resonanceClientName, setResonanceClientName] = useState<string>("");
   const [resonanceLoading, setResonanceLoading] = useState(false);
   const [resonanceError, setResonanceError] = useState<string | null>(null);
+  const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [account, setAccount] = useState<AccountMeta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ResultTab>("health");
@@ -44,6 +45,7 @@ export default function Home() {
     setAccount(null);
     setResonanceResult(null);
     setResonanceError(null);
+    setPerformanceData(null);
     setActiveTab("health");
     setLoadingMsg("Fetching Meta account data…");
 
@@ -60,8 +62,9 @@ export default function Home() {
       setAccount(data.account ?? null);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
-      // Kick off resonance analysis in the background (non-blocking)
+      // Kick off resonance + performance in the background (non-blocking)
       fetchResonance(accountId, dateRange);
+      fetchPerformance(accountId, dateRange);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -90,6 +93,21 @@ export default function Home() {
       if (!msg.includes("No client config")) setResonanceError(msg);
     } finally {
       setResonanceLoading(false);
+    }
+  }
+
+  async function fetchPerformance(accountId: string, dateRange: DateRange) {
+    try {
+      const res = await fetch("/api/performance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId, dateRange }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) return; // silently skip on error
+      setPerformanceData(data.performance);
+    } catch {
+      // silently skip — charts are optional
     }
   }
 
@@ -123,6 +141,7 @@ export default function Home() {
     setResult(null);
     setResonanceResult(null);
     setResonanceError(null);
+    setPerformanceData(null);
     setError(null);
     setAccount(null);
     setActiveTab("health");
@@ -321,7 +340,7 @@ export default function Home() {
             )}
 
             {activeTab === "health" && (
-              <ResultsDashboard result={result} onReset={handleReset} />
+              <ResultsDashboard result={result} onReset={handleReset} performance={performanceData ?? undefined} />
             )}
 
             {activeTab === "resonance" && (
@@ -342,7 +361,7 @@ export default function Home() {
                   </div>
                 )}
                 {resonanceResult && (
-                  <ResonancePanel result={resonanceResult} clientName={resonanceClientName} />
+                  <ResonancePanel result={resonanceResult} clientName={resonanceClientName} performance={performanceData ?? undefined} />
                 )}
               </>
             )}

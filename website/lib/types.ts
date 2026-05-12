@@ -91,6 +91,37 @@ export interface ResonanceResult {
   organic: ResonanceScoreResult;
 }
 
+export interface DailyMetric {
+  date: string; // YYYY-MM-DD
+  value: number;
+}
+
+export interface PerformanceData {
+  ads: {
+    spend: DailyMetric[];
+    ctr: DailyMetric[];
+    cpm: DailyMetric[];
+    impressions: DailyMetric[];
+    frequency: DailyMetric[];
+    clicks: DailyMetric[];
+  };
+  organic: {
+    fb: {
+      reach: DailyMetric[];
+      impressions: DailyMetric[];
+      engagements: DailyMetric[];
+      pageViews: DailyMetric[];
+      newFollowers: DailyMetric[];
+    };
+    ig: {
+      reach: DailyMetric[];
+      impressions: DailyMetric[];
+      accountsEngaged: DailyMetric[];
+      profileViews: DailyMetric[];
+    };
+  };
+}
+
 export interface AdMetrics {
   // Account
   businessType: string;
