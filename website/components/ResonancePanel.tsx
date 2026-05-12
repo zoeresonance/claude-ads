@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation } from "@/lib/types";
+import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation, PerformanceData } from "@/lib/types";
+import PerformanceChart from "@/components/PerformanceChart";
 
 interface Props {
   result: ResonanceResult;
   clientName: string;
+  performance?: PerformanceData;
 }
 
 const GRADE_COLORS: Record<string, string> = {
@@ -220,7 +222,7 @@ function ScorePanel({
   );
 }
 
-export default function ResonancePanel({ result, clientName }: Props) {
+export default function ResonancePanel({ result, clientName, performance }: Props) {
   const [active, setActive] = useState<"ads" | "organic">("ads");
 
   return (
@@ -268,15 +270,51 @@ export default function ResonancePanel({ result, clientName }: Props) {
 
       {/* Active panel */}
       {active === "ads" ? (
-        <ScorePanel
-          data={result.ads}
-          dimensionLabels={ADS_DIMENSION_LABELS}
-          icon="📣"
-          label="Ads Resonance"
-          accentColor="border-blue-200"
-        />
+        <>
+          {performance && (
+            <PerformanceChart
+              title="Ad Performance"
+              metrics={[
+                { key: "spend",       label: "Spend",       data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+                { key: "ctr",         label: "CTR",         data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
+                { key: "cpm",         label: "CPM",         data: performance.ads.cpm,         format: "currency", color: "#d97706" },
+                { key: "impressions", label: "Impressions", data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
+                { key: "frequency",   label: "Frequency",   data: performance.ads.frequency,   format: "number",   color: "#db2777" },
+              ]}
+            />
+          )}
+          <ScorePanel
+            data={result.ads}
+            dimensionLabels={ADS_DIMENSION_LABELS}
+            icon="📣"
+            label="Ads Resonance"
+            accentColor="border-blue-200"
+          />
+        </>
       ) : (
         <>
+          {performance && (
+            <div className="space-y-4">
+              <PerformanceChart
+                title="Facebook Page Performance"
+                metrics={[
+                  { key: "reach",        label: "Reach",        data: performance.organic.fb.reach,        format: "number", color: "#1877f2" },
+                  { key: "impressions",  label: "Impressions",  data: performance.organic.fb.impressions,  format: "number", color: "#7c3aed" },
+                  { key: "engagements",  label: "Engagements",  data: performance.organic.fb.engagements,  format: "number", color: "#16a34a" },
+                  { key: "newFollowers", label: "New Followers", data: performance.organic.fb.newFollowers, format: "number", color: "#d97706" },
+                ]}
+              />
+              <PerformanceChart
+                title="Instagram Performance"
+                metrics={[
+                  { key: "reach",           label: "Reach",            data: performance.organic.ig.reach,           format: "number", color: "#e1306c" },
+                  { key: "impressions",     label: "Impressions",      data: performance.organic.ig.impressions,     format: "number", color: "#7c3aed" },
+                  { key: "accountsEngaged", label: "Accounts Engaged", data: performance.organic.ig.accountsEngaged, format: "number", color: "#16a34a" },
+                  { key: "profileViews",    label: "Profile Views",    data: performance.organic.ig.profileViews,    format: "number", color: "#d97706" },
+                ]}
+              />
+            </div>
+          )}
           <ScorePanel
             data={result.organic}
             dimensionLabels={ORGANIC_DIMENSION_LABELS}

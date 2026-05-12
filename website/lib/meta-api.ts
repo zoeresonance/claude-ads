@@ -295,6 +295,40 @@ export async function fetchMetaData(
 }
 
 // ---------------------------------------------------------------------------
+// Daily ads insights (time_increment=1 for per-day breakdown)
+// ---------------------------------------------------------------------------
+
+export interface DailyAdsInsight {
+  date_start: string;
+  date_stop: string;
+  spend: string;
+  impressions: string;
+  clicks: string;
+  ctr: string;
+  cpm: string;
+  frequency: string;
+}
+
+export async function fetchDailyAdsInsights(
+  token: string,
+  accountId: string,
+  dateRange?: DateRange
+): Promise<DailyAdsInsight[]> {
+  const actId = accountId.startsWith("act_") ? accountId : `act_${accountId}`;
+  const range = dateRange ?? defaultRange();
+  const timeRange = JSON.stringify({ since: range.since, until: range.until });
+
+  return paginate<DailyAdsInsight>(`/${actId}/insights`, {
+    fields: "spend,impressions,clicks,ctr,cpm,frequency",
+    time_range: timeRange,
+    time_increment: "1",
+    level: "account",
+    limit: "90",
+    access_token: token.trim(),
+  }).catch(() => []);
+}
+
+// ---------------------------------------------------------------------------
 // Organic data types
 // ---------------------------------------------------------------------------
 
