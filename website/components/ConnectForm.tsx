@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import DateRangePicker, { DateRange, defaultDateRange } from "./DateRangePicker";
 
-interface AdAccount {
-  id: string;
+interface Client {
   name: string;
-  currency: string;
+  adAccountId: string;
 }
 
 interface Props {
@@ -15,22 +14,22 @@ interface Props {
 }
 
 export default function ConnectForm({ onAnalyze, loading }: Props) {
-  const [accounts, setAccounts] = useState<AdAccount[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  const [fetchingAccounts, setFetchingAccounts] = useState(true);
+  const [fetchingClients, setFetchingClients] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange());
 
   useEffect(() => {
-    fetch("/api/accounts")
+    fetch("/api/clients")
       .then((r) => r.json())
       .then((json) => {
         if (json.error) throw new Error(json.error);
-        setAccounts(json.accounts);
-        if (json.accounts.length > 0) setSelectedId(json.accounts[0].id);
+        setClients(json.clients);
+        if (json.clients.length > 0) setSelectedId(json.clients[0].adAccountId);
       })
       .catch((err) => setFetchError(err.message))
-      .finally(() => setFetchingAccounts(false));
+      .finally(() => setFetchingClients(false));
   }, []);
 
   function handleSubmit(e: React.FormEvent) {
@@ -44,7 +43,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       {/* How it works */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {[
-          { icon: "📋", title: "Pick an account", desc: "Choose from your agency's linked accounts" },
+          { icon: "👤", title: "Pick a client", desc: "Choose from your configured clients" },
           { icon: "📅", title: "Choose a date range", desc: "Adjust the analysis window" },
           { icon: "🤖", title: "AI audit + resonance", desc: "Health and audience scoring in ~30 sec" },
         ].map((s) => (
@@ -56,14 +55,14 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
         ))}
       </div>
 
-      {/* Account selector */}
+      {/* Client selector */}
       <div className="space-y-1.5">
         <label className="block text-sm font-semibold text-slate-700">
-          Ad Account <span className="text-red-500">*</span>
+          Client <span className="text-red-500">*</span>
         </label>
 
-        {fetchingAccounts && (
-          <p className="text-sm text-slate-500 animate-pulse">Loading accounts…</p>
+        {fetchingClients && (
+          <p className="text-sm text-slate-500 animate-pulse">Loading clients…</p>
         )}
 
         {fetchError && (
@@ -72,19 +71,25 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           </p>
         )}
 
-        {!fetchingAccounts && !fetchError && accounts.length > 0 && (
+        {!fetchingClients && !fetchError && clients.length > 0 && (
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
             required
             className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
           >
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name} — {a.id} ({a.currency})
+            {clients.map((c) => (
+              <option key={c.adAccountId} value={c.adAccountId}>
+                {c.name}
               </option>
             ))}
           </select>
+        )}
+
+        {!fetchingClients && !fetchError && clients.length === 0 && (
+          <p className="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+            No clients configured. Add a client folder under <code className="text-xs bg-slate-100 px-1 rounded">website/clients/</code>.
+          </p>
         )}
       </div>
 
@@ -102,10 +107,10 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Fetching account data…
+            Fetching data…
           </>
         ) : (
-          "Analyze This Account →"
+          "Analyze Client →"
         )}
       </button>
 
