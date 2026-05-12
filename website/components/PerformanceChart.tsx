@@ -15,6 +15,7 @@ import type { DailyMetric } from "@/lib/types";
 export interface ChartMetric {
   key: string;
   label: string;
+  description: string;
   data: DailyMetric[];
   format: "currency" | "percent" | "number";
   color: string;
@@ -46,7 +47,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
-      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+      <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
         <h4 className="font-semibold text-slate-800 text-sm">{title}</h4>
         <div className="flex gap-1 flex-wrap">
           {metrics.map((m) => (
@@ -64,6 +65,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
           ))}
         </div>
       </div>
+      <p className="text-xs text-slate-400 mb-4">{active.description}</p>
 
       <ResponsiveContainer width="100%" height={180}>
         <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
