@@ -311,7 +311,7 @@ export default function ResonancePanel({ result, clientName, performance, organi
                   metrics={[
                     { key: "reach",       label: "Reach",       description: "Unique people who saw any of your page's content.",       data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
                     { key: "impressions", label: "Impressions", description: "Total times your page's content was displayed.",           data: performance.organic.fb.impressions, format: "number", color: "#7c3aed" },
-                    { key: "pageViews",   label: "Page Views",  description: "Times your Facebook page was viewed.",                    data: performance.organic.fb.pageViews,   format: "number", color: "#d97706" },
+                    { key: "newFollowers",label: "New Followers",description: "Net new people who liked or followed your page each day.", data: performance.organic.fb.newFollowers, format: "number", color: "#d97706" },
                   ]}
                 />
                 <PerformanceChart

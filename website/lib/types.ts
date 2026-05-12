@@ -111,7 +111,6 @@ export interface PerformanceData {
       impressions: DailyMetric[];
       engagements: DailyMetric[];
       engagedUsers: DailyMetric[];
-      pageViews: DailyMetric[];
       newFollowers: DailyMetric[];
     };
     ig: {
