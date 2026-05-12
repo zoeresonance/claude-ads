@@ -314,30 +314,27 @@ export default function ResonancePanel({ result, clientName, performance, organi
           {performance ? (
             <div className="space-y-4">
               <PerformanceChart
-                title="Audience Reception"
+                title="Organic Reach & Engagement"
                 metrics={[
-                  { key: "fb_engagements",  label: "FB Engagements",   description: "Total reactions, comments, shares, and clicks on Facebook posts.",     data: performance.organic.fb.engagements,     format: "number", color: "#1877f2" },
-                  { key: "fb_engaged",      label: "FB Engaged Users",  description: "Unique people who interacted with your Facebook page content.",        data: performance.organic.fb.engagedUsers,    format: "number", color: "#16a34a" },
-                  { key: "fb_followers",    label: "FB New Followers",  description: "Net new people who liked or followed your Facebook page each day.",     data: performance.organic.fb.newFollowers,    format: "number", color: "#d97706" },
-                  { key: "ig_engaged",      label: "IG Engaged",        description: "Instagram accounts that liked, commented, saved, or shared content.",   data: performance.organic.ig.accountsEngaged, format: "number", color: "#e1306c" },
+                  { key: "fb_reach",       label: "FB Reach",       description: "Unique people who saw your Facebook page content (last 90 days).",  data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
+                  { key: "fb_engagements", label: "FB Engagements", description: "Total reactions, comments, shares, and clicks on Facebook posts.",   data: performance.organic.fb.engagements, format: "number", color: "#16a34a" },
+                  { key: "ig_reach",       label: "IG Reach",       description: "Unique accounts that saw your Instagram posts or stories (last 30 days, API limit).", data: performance.organic.ig.reach, format: "number", color: "#e1306c" },
                 ]}
               />
               <div className="grid sm:grid-cols-2 gap-4">
                 <PerformanceChart
-                  title="Facebook — Reach & Visibility"
+                  title="Facebook — Organic"
                   metrics={[
-                    { key: "reach",       label: "Reach",       description: "Unique people who saw any of your page's content.",       data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
-                    { key: "impressions", label: "Impressions", description: "Total times your page's content was displayed.",           data: performance.organic.fb.impressions, format: "number", color: "#7c3aed" },
-                    { key: "newFollowers",label: "New Followers",description: "Net new people who liked or followed your page each day.", data: performance.organic.fb.newFollowers, format: "number", color: "#d97706" },
+                    { key: "reach",       label: "Reach",       description: "Unique people who saw any of your page's content.",             data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
+                    { key: "engagements", label: "Engagements", description: "Total post reactions, comments, shares, and link clicks.",       data: performance.organic.fb.engagements, format: "number", color: "#16a34a" },
                   ]}
                 />
                 <PerformanceChart
-                  title="Instagram — Reach & Visibility"
+                  title="Instagram — Organic (last 30 days)"
                   metrics={[
-                    { key: "reach",       label: "Reach",       description: "Unique accounts that saw your posts or stories.",                    data: performance.organic.ig.reach,       format: "number", color: "#e1306c" },
-                    { key: "impressions", label: "Impressions", description: "Total times your content was displayed, including repeat views.",    data: performance.organic.ig.impressions, format: "number", color: "#7c3aed" },
-                    { key: "profileViews",label: "Profile Views",description: "Times your Instagram profile was viewed.",                         data: performance.organic.ig.profileViews,format: "number", color: "#d97706" },
-                    { key: "follows",     label: "New Follows", description: "New Instagram accounts that followed you each day.",                data: performance.organic.ig.follows,     format: "number", color: "#16a34a" },
+                    { key: "reach",         label: "Reach",          description: "Unique accounts that saw your posts or stories.",                data: performance.organic.ig.reach,         format: "number", color: "#e1306c" },
+                    { key: "followers",     label: "Follower Count", description: "Total Instagram followers at each point in time.",              data: performance.organic.ig.followerCount, format: "number", color: "#7c3aed" },
+                    { key: "websiteClicks", label: "Website Clicks", description: "Taps on the website link in your Instagram profile.",           data: performance.organic.ig.websiteClicks, format: "number", color: "#d97706" },
                   ]}
                 />
               </div>
