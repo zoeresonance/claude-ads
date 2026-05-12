@@ -412,7 +412,6 @@ export async function fetchOrganicData(
             "page_reach",
             "page_engaged_users",
             "page_post_engagements",
-            "page_views_total",
             "page_fan_adds_unique",
           ].join(","),
           period: "day",

@@ -17,21 +17,25 @@ function extractDailySeries(insights: PageInsightValue[], metricName: string): D
     }));
 }
 
-async function probeInsightsError(token: string, pageId: string): Promise<string | null> {
+async function probeInsightsError(token: string, pageId: string): Promise<string> {
   try {
     const params = new URLSearchParams({
       metric: "page_reach",
       period: "day",
-      since: String(Math.floor(Date.now() / 1000) - 86400 * 3),
+      since: String(Math.floor(Date.now() / 1000) - 86400 * 7),
       until: String(Math.floor(Date.now() / 1000)),
       access_token: token,
     });
     const res = await fetch(`${META_BASE}/${pageId}/insights?${params}`);
     const json = await res.json();
-    if (json.error) return `${json.error.message} (code ${json.error.code})`;
-    return null;
-  } catch {
-    return "Could not reach the Facebook Page Insights API";
+    if (json.error) return `Meta API error: ${json.error.message} (code ${json.error.code})`;
+    const metrics = json.data?.length ?? 0;
+    const points = json.data?.[0]?.values?.length ?? 0;
+    const first = json.data?.[0]?.values?.[0];
+    if (metrics === 0) return "API returned 0 metrics — page may have no insights data or the page ID is incorrect.";
+    return `Debug: ${metrics} metric(s), ${points} data point(s). First value: ${JSON.stringify(first?.value)} (type: ${typeof first?.value}) at ${first?.end_time}`;
+  } catch (e) {
+    return `Probe exception: ${e instanceof Error ? e.message : "unknown"}`;
   }
 }
 
@@ -53,7 +57,7 @@ export async function POST(req: NextRequest) {
         : Promise.resolve(null),
     ]);
 
-    // If organic fetched but page insights came back empty, probe for the real error
+    // If page insights are empty, probe the API to get diagnostic info
     let organicError: string | null = null;
     if (organic && organic.pageInsights.length === 0 && client?.facebookPageId) {
       organicError = await probeInsightsError(token, client.facebookPageId);
@@ -75,7 +79,6 @@ export async function POST(req: NextRequest) {
               impressions:  extractDailySeries(organic.pageInsights, "page_impressions"),
               engagements:  extractDailySeries(organic.pageInsights, "page_post_engagements"),
               engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users"),
-              pageViews:    extractDailySeries(organic.pageInsights, "page_views_total"),
               newFollowers: extractDailySeries(organic.pageInsights, "page_fan_adds_unique"),
             },
             ig: {
@@ -86,7 +89,7 @@ export async function POST(req: NextRequest) {
               follows:        extractDailySeries(organic.igInsights, "follows"),
             },
           }
-        : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], pageViews: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
+        : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
     };
 
     return NextResponse.json({ performance, organicError });
