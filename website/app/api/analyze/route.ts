@@ -14,6 +14,7 @@ async function generateWithRetry(contents: string, retries = 3): Promise<string>
         config: {
           systemInstruction: SYSTEM_PROMPT,
           maxOutputTokens: 65536,
+          temperature: 0,
           thinkingConfig: { thinkingBudget: 0 },
         },
       });
