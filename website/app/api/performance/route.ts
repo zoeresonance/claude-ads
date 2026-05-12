@@ -86,8 +86,11 @@ export async function POST(req: NextRequest) {
       hasFbPageId: !!client?.facebookPageId,
       hasIgId: !!client?.instagramAccountId,
       organicIsNull: organic === null,
+      pageTokenSource: organic?.pageTokenSource ?? null,
       pageInsightsCount: organic?.pageInsights.length ?? -1,
       pageInsightsNames: organic?.pageInsights.map(i => i.name) ?? [],
+      fbMetricErrors: organic?.fbMetricErrors ?? {},
+      igMetricErrors: organic?.igMetricErrors ?? {},
       organicErrorMsg: organicError,
       fbMetricCounts: organic ? {
         reach: extractDailySeries(organic.pageInsights, "page_impressions_unique").length,
@@ -100,7 +103,6 @@ export async function POST(req: NextRequest) {
         reach: extractDailySeries(organic.igInsights, "reach").length,
         accountsEngaged: extractDailySeries(organic.igInsights, "accounts_engaged").length,
         profileViews: extractDailySeries(organic.igInsights, "profile_views").length,
-        follows: extractDailySeries(organic.igInsights, "follows").length,
       } : null,
       sampleFbReach: organic?.pageInsights.find(i => i.name === "page_impressions_unique")?.values.slice(0, 2) ?? [],
     };

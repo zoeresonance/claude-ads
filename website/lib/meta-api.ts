@@ -378,6 +378,9 @@ export interface OrganicData {
   igMedia: IgMedia[];
   dateRange: DateRange;
   fetchedAt: string;
+  fbMetricErrors: Record<string, string>;
+  igMetricErrors: Record<string, string>;
+  pageTokenSource: "page_token" | "system_token";
 }
 
 // ---------------------------------------------------------------------------
@@ -397,10 +400,42 @@ export async function fetchOrganicData(
 
   // Page Insights requires a Page Access Token, not a system user token.
   // Exchange the system token for the page-specific token first.
-  const pageToken = await gql<{ access_token?: string; id: string }>(
+  const pageTokenRaw = await gql<{ access_token?: string; id: string }>(
     `/${facebookPageId}`,
     { fields: "access_token", access_token: t }
-  ).then((r) => r.access_token ?? t).catch(() => t);
+  ).then((r) => r.access_token).catch(() => undefined);
+  const pageToken = pageTokenRaw ?? t;
+  const pageTokenSource: OrganicData["pageTokenSource"] = pageTokenRaw ? "page_token" : "system_token";
+
+  // Capture per-metric errors so callers can diagnose what failed
+  const fbMetricErrors: Record<string, string> = {};
+  const igMetricErrors: Record<string, string> = {};
+
+  async function fetchFbMetric(metric: string): Promise<PageInsightValue[]> {
+    try {
+      const r = await gql<{ data: PageInsightValue[] }>(
+        `/${facebookPageId}/insights`,
+        { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+      );
+      return r.data ?? [];
+    } catch (e) {
+      fbMetricErrors[metric] = e instanceof Error ? e.message : "unknown";
+      return [];
+    }
+  }
+
+  async function fetchIgMetric(metric: string): Promise<PageInsightValue[]> {
+    try {
+      const r = await gql<{ data: PageInsightValue[] }>(
+        `/${instagramAccountId}/insights`,
+        { metric, period: "day", since: sinceTs, until: untilTs, access_token: t }
+      );
+      return r.data ?? [];
+    } catch (e) {
+      igMetricErrors[metric] = e instanceof Error ? e.message : "unknown";
+      return [];
+    }
+  }
 
   const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
@@ -410,20 +445,14 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Page-level metrics — fetch each separately so one invalid metric
-      // doesn't poison the entire batch.
+      // Page-level metrics — each fetched individually so errors are isolated
       Promise.all([
         "page_impressions",
         "page_impressions_unique",
         "page_engaged_users",
         "page_post_engagements",
         "page_fan_adds_unique",
-      ].map((metric) =>
-        gql<{ data: PageInsightValue[] }>(
-          `/${facebookPageId}/insights`,
-          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
-        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
-      )).then((results) => results.flat()),
+      ].map(fetchFbMetric)).then((results) => results.flat()),
 
       // Recent FB posts (filtered by date range below)
       paginate<PagePost>(`/${facebookPageId}/posts`, {
@@ -442,15 +471,10 @@ export async function fetchOrganicData(
         access_token: pageToken,
       }).catch(() => [] as PagePost[]),
 
-      // Instagram account-level insights — fetch each metric separately
+      // Instagram account-level insights — each fetched individually
       Promise.all([
-        "reach", "impressions", "profile_views", "accounts_engaged", "follows",
-      ].map((metric) =>
-        gql<{ data: PageInsightValue[] }>(
-          `/${instagramAccountId}/insights`,
-          { metric, period: "day", since: sinceTs, until: untilTs, access_token: t }
-        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
-      )).then((results) => results.flat()),
+        "reach", "impressions", "profile_views", "accounts_engaged",
+      ].map(fetchIgMetric)).then((results) => results.flat()),
 
       // Instagram audience demographics — lifetime only (API limitation)
       gql<{ data: PageInsightValue[] }>(
@@ -482,8 +506,8 @@ export async function fetchOrganicData(
   const sinceMs = new Date(range.since).getTime();
   const untilMs = new Date(range.until).getTime() + 86400000; // include the until day
   const igMedia = allIgMedia.filter((m) => {
-    const t = new Date(m.timestamp).getTime();
-    return t >= sinceMs && t <= untilMs;
+    const ts = new Date(m.timestamp).getTime();
+    return ts >= sinceMs && ts <= untilMs;
   });
 
   return {
@@ -495,5 +519,8 @@ export async function fetchOrganicData(
     igMedia,
     dateRange: range,
     fetchedAt: new Date().toISOString(),
+    fbMetricErrors,
+    igMetricErrors,
+    pageTokenSource,
   };
 }
