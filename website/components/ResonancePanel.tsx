@@ -301,6 +301,16 @@ export default function ResonancePanel({ result, clientName, performance, organi
               <pre>{JSON.stringify(perfDebug, null, 2)}</pre>
             </div>
           )}
+          {organicError && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm">
+              <p className="font-semibold text-amber-800 mb-1">Organic chart data unavailable</p>
+              <p className="text-amber-700 text-xs font-mono break-all">{organicError}</p>
+              <p className="text-amber-600 text-xs mt-2">
+                The system user token may need its token regenerated after being granted Insights access.
+                In Meta Business Settings → System Users → Generate New Token, include <code className="bg-amber-100 px-1 rounded">read_insights</code>.
+              </p>
+            </div>
+          )}
           {performance ? (
             <div className="space-y-4">
               <PerformanceChart
@@ -331,15 +341,6 @@ export default function ResonancePanel({ result, clientName, performance, organi
                   ]}
                 />
               </div>
-            </div>
-          ) : organicError ? (
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm">
-              <p className="font-semibold text-amber-800 mb-1">Organic chart data unavailable</p>
-              <p className="text-amber-700 text-xs">{organicError}</p>
-              <p className="text-amber-600 text-xs mt-2">
-                The system user token needs <code className="bg-amber-100 px-1 rounded">read_insights</code> permission on the Facebook Page.
-                In Meta Business Settings → System Users, ensure the user has Analyst or higher role on this Page.
-              </p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center text-sm text-slate-400">

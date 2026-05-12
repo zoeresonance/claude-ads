@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       organicIsNull: organic === null,
       pageInsightsCount: organic?.pageInsights.length ?? -1,
       pageInsightsNames: organic?.pageInsights.map(i => i.name) ?? [],
+      organicErrorMsg: organicError,
       fbMetricCounts: organic ? {
         reach: extractDailySeries(organic.pageInsights, "page_reach").length,
         impressions: extractDailySeries(organic.pageInsights, "page_impressions").length,
