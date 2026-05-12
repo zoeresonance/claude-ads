@@ -327,11 +327,11 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
         <PerformanceChart
           title="Ad Performance"
           metrics={[
-            { key: "spend",       label: "Spend",       data: performance.ads.spend,       format: "currency", color: "#2563eb" },
-            { key: "ctr",         label: "CTR",         data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
-            { key: "cpm",         label: "CPM",         data: performance.ads.cpm,         format: "currency", color: "#d97706" },
-            { key: "impressions", label: "Impressions", data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
-            { key: "frequency",   label: "Frequency",   data: performance.ads.frequency,   format: "number",   color: "#db2777" },
+            { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                          data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+            { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",          data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
+            { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                             data: performance.ads.cpm,         format: "currency", color: "#d97706" },
+            { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                              data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
+            { key: "frequency",   label: "Frequency",   description: "Average number of times each person saw your ads.",                       data: performance.ads.frequency,   format: "number",   color: "#db2777" },
           ]}
         />
       )}

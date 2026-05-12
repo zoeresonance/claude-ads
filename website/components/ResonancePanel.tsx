@@ -275,11 +275,11 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             <PerformanceChart
               title="Ad Performance"
               metrics={[
-                { key: "spend",       label: "Spend",       data: performance.ads.spend,       format: "currency", color: "#2563eb" },
-                { key: "ctr",         label: "CTR",         data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
-                { key: "cpm",         label: "CPM",         data: performance.ads.cpm,         format: "currency", color: "#d97706" },
-                { key: "impressions", label: "Impressions", data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
-                { key: "frequency",   label: "Frequency",   data: performance.ads.frequency,   format: "number",   color: "#db2777" },
+                { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                    data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+                { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",  data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
+                { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                     data: performance.ads.cpm,         format: "currency", color: "#d97706" },
+                { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                      data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
+                { key: "frequency",   label: "Frequency",   description: "Average number of times each person saw your ads.",               data: performance.ads.frequency,   format: "number",   color: "#db2777" },
               ]}
             />
           )}
@@ -298,19 +298,19 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
               <PerformanceChart
                 title="Facebook Page Performance"
                 metrics={[
-                  { key: "reach",        label: "Reach",        data: performance.organic.fb.reach,        format: "number", color: "#1877f2" },
-                  { key: "impressions",  label: "Impressions",  data: performance.organic.fb.impressions,  format: "number", color: "#7c3aed" },
-                  { key: "engagements",  label: "Engagements",  data: performance.organic.fb.engagements,  format: "number", color: "#16a34a" },
-                  { key: "newFollowers", label: "New Followers", data: performance.organic.fb.newFollowers, format: "number", color: "#d97706" },
+                  { key: "reach",        label: "Reach",        description: "Unique people who saw any of your page's content.",        data: performance.organic.fb.reach,        format: "number", color: "#1877f2" },
+                  { key: "impressions",  label: "Impressions",  description: "Total times your page's content was displayed.",            data: performance.organic.fb.impressions,  format: "number", color: "#7c3aed" },
+                  { key: "engagements",  label: "Engagements",  description: "Total reactions, comments, shares, and clicks on posts.",   data: performance.organic.fb.engagements,  format: "number", color: "#16a34a" },
+                  { key: "newFollowers", label: "New Followers", description: "Net new people who liked or followed your page.",          data: performance.organic.fb.newFollowers, format: "number", color: "#d97706" },
                 ]}
               />
               <PerformanceChart
                 title="Instagram Performance"
                 metrics={[
-                  { key: "reach",           label: "Reach",            data: performance.organic.ig.reach,           format: "number", color: "#e1306c" },
-                  { key: "impressions",     label: "Impressions",      data: performance.organic.ig.impressions,     format: "number", color: "#7c3aed" },
-                  { key: "accountsEngaged", label: "Accounts Engaged", data: performance.organic.ig.accountsEngaged, format: "number", color: "#16a34a" },
-                  { key: "profileViews",    label: "Profile Views",    data: performance.organic.ig.profileViews,    format: "number", color: "#d97706" },
+                  { key: "reach",           label: "Reach",            description: "Unique accounts that saw your posts or stories.",             data: performance.organic.ig.reach,           format: "number", color: "#e1306c" },
+                  { key: "impressions",     label: "Impressions",      description: "Total times your content was displayed, including repeat views.", data: performance.organic.ig.impressions,     format: "number", color: "#7c3aed" },
+                  { key: "accountsEngaged", label: "Accounts Engaged", description: "Accounts that liked, commented, saved, or shared your content.",  data: performance.organic.ig.accountsEngaged, format: "number", color: "#16a34a" },
+                  { key: "profileViews",    label: "Profile Views",    description: "Times your Instagram profile was viewed.",                        data: performance.organic.ig.profileViews,    format: "number", color: "#d97706" },
                 ]}
               />
             </div>
