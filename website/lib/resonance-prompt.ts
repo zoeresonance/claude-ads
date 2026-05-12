@@ -274,7 +274,7 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
   if (organic.igInsights.length) {
     igSections.push("Instagram Metrics (last 30 days — Meta API hard limit for reach):");
     igSections.push(`  Reach: ${getInsightValue(organic.igInsights, "reach")}`);
-    igSections.push(`  Follower Count: ${getInsightValue(organic.igInsights, "follower_count")}`);
+    igSections.push(`  New Followers (daily): ${getInsightValue(organic.igInsights, "follower_count")}`);
   }
   if (organic.igAudienceDemographics.length) {
     igSections.push("\nAudience Demographics (LIFETIME — represents all-time follower base, NOT this date range):");

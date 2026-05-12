@@ -315,7 +315,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                   title="Instagram — Organic (last 30 days)"
                   metrics={[
                     { key: "reach",     label: "Reach",          description: "Unique accounts that saw your posts or stories.",    data: performance.organic.ig.reach,         format: "number", color: "#e1306c" },
-                    { key: "followers", label: "Follower Count", description: "Total Instagram followers at each point in time.",   data: performance.organic.ig.followerCount, format: "number", color: "#7c3aed" },
+                    { key: "followers", label: "New Followers",  description: "Net new Instagram followers gained each day.",       data: performance.organic.ig.followerCount, format: "number", color: "#7c3aed" },
                   ]}
                 />
               </div>
