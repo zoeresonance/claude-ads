@@ -49,15 +49,6 @@ export async function POST(req: NextRequest) {
 
     const client = getClientForAccount(accountId);
 
-    // Debug: always expose what the server sees
-    const debugInfo = {
-      accountId,
-      clientFound: !!client,
-      clientName: client?.name ?? null,
-      hasFbPageId: !!client?.facebookPageId,
-      hasIgId: !!client?.instagramAccountId,
-    };
-
     // Fetch daily ads data + organic data in parallel (organic only if client config exists)
     const [dailyAds, organic] = await Promise.all([
       fetchDailyAdsInsights(token, accountId, dateRange as DateRange | undefined),
@@ -82,6 +73,31 @@ export async function POST(req: NextRequest) {
         }
       }
     }
+
+    const debugInfo = {
+      accountId,
+      clientFound: !!client,
+      clientName: client?.name ?? null,
+      hasFbPageId: !!client?.facebookPageId,
+      hasIgId: !!client?.instagramAccountId,
+      organicIsNull: organic === null,
+      pageInsightsCount: organic?.pageInsights.length ?? -1,
+      pageInsightsNames: organic?.pageInsights.map(i => i.name) ?? [],
+      fbMetricCounts: organic ? {
+        reach: extractDailySeries(organic.pageInsights, "page_reach").length,
+        impressions: extractDailySeries(organic.pageInsights, "page_impressions").length,
+        engagements: extractDailySeries(organic.pageInsights, "page_post_engagements").length,
+        engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users").length,
+        newFollowers: extractDailySeries(organic.pageInsights, "page_fan_adds_unique").length,
+      } : null,
+      igMetricCounts: organic ? {
+        reach: extractDailySeries(organic.igInsights, "reach").length,
+        accountsEngaged: extractDailySeries(organic.igInsights, "accounts_engaged").length,
+        profileViews: extractDailySeries(organic.igInsights, "profile_views").length,
+        follows: extractDailySeries(organic.igInsights, "follows").length,
+      } : null,
+      sampleFbReach: organic?.pageInsights.find(i => i.name === "page_reach")?.values.slice(0, 2) ?? [],
+    };
 
     const performance: PerformanceData = {
       ads: {
