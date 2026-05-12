@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation } from "@/lib/types";
 
 interface Props {
@@ -220,46 +221,76 @@ function ScorePanel({
 }
 
 export default function ResonancePanel({ result, clientName }: Props) {
+  const [active, setActive] = useState<"ads" | "organic">("ads");
+
   return (
-    <div className="space-y-8">
-      {/* Page header */}
-      <div className="flex items-center gap-2">
-        <span className="text-lg">🎯</span>
-        <h2 className="text-lg font-bold text-slate-900">Resonance Score</h2>
-        <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{clientName}</span>
+    <div className="space-y-6">
+      {/* Toggle header */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg">🎯</span>
+          <h2 className="text-base font-bold text-slate-900">Resonance Score</h2>
+          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{clientName}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {(["ads", "organic"] as const).map((tab) => {
+            const data = result[tab];
+            const isActive = active === tab;
+            const gradeClass = GRADE_COLORS[data.grade] ?? GRADE_COLORS.C;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActive(tab)}
+                className={`rounded-xl border-2 p-3 text-left transition-all ${
+                  isActive ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold text-slate-600">
+                    {tab === "ads" ? "📣 Ads" : "🌱 Organic"}
+                  </span>
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${gradeClass}`}>
+                    {data.grade}
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-slate-900">
+                  {data.score}
+                  <span className="text-xs font-normal text-slate-400 ml-1">/ 100</span>
+                </div>
+                <div className="text-xs text-slate-500 mt-0.5">
+                  {tab === "ads" ? "Paid campaigns" : "FB & IG posts"}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Ads resonance */}
-      <ScorePanel
-        data={result.ads}
-        dimensionLabels={ADS_DIMENSION_LABELS}
-        icon="📣"
-        label="Ads Resonance"
-        accentColor="border-blue-200"
-      />
-
-      {/* Divider */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-xs text-slate-400 font-medium">ORGANIC</span>
-        <div className="flex-1 h-px bg-slate-200" />
-      </div>
-
-      {/* Organic resonance */}
-      <ScorePanel
-        data={result.organic}
-        dimensionLabels={ORGANIC_DIMENSION_LABELS}
-        icon="🌱"
-        label="Organic Resonance — Facebook & Instagram"
-        accentColor="border-green-200"
-      />
-
-      {/* Data caveat */}
-      <p className="text-xs text-slate-400 text-center px-4">
-        Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
-        not the selected date range — Meta&apos;s API does not support custom ranges for that
-        metric. All other metrics respect the selected range.
-      </p>
+      {/* Active panel */}
+      {active === "ads" ? (
+        <ScorePanel
+          data={result.ads}
+          dimensionLabels={ADS_DIMENSION_LABELS}
+          icon="📣"
+          label="Ads Resonance"
+          accentColor="border-blue-200"
+        />
+      ) : (
+        <>
+          <ScorePanel
+            data={result.organic}
+            dimensionLabels={ORGANIC_DIMENSION_LABELS}
+            icon="🌱"
+            label="Organic Resonance — Facebook & Instagram"
+            accentColor="border-green-200"
+          />
+          <p className="text-xs text-slate-400 text-center px-4">
+            Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
+            not the selected date range — Meta&apos;s API does not support custom ranges for that
+            metric. All other metrics respect the selected range.
+          </p>
+        </>
+      )}
     </div>
   );
 }
