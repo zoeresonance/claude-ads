@@ -378,9 +378,6 @@ export interface OrganicData {
   igMedia: IgMedia[];
   dateRange: DateRange;
   fetchedAt: string;
-  fbMetricErrors: Record<string, string>;
-  igMetricErrors: Record<string, string>;
-  pageTokenSource: "page_token" | "system_token";
 }
 
 // ---------------------------------------------------------------------------
@@ -400,16 +397,10 @@ export async function fetchOrganicData(
 
   // Page Insights requires a Page Access Token, not a system user token.
   // Exchange the system token for the page-specific token first.
-  const pageTokenRaw = await gql<{ access_token?: string; id: string }>(
+  const pageToken = await gql<{ access_token?: string; id: string }>(
     `/${facebookPageId}`,
     { fields: "access_token", access_token: t }
-  ).then((r) => r.access_token).catch(() => undefined);
-  const pageToken = pageTokenRaw ?? t;
-  const pageTokenSource: OrganicData["pageTokenSource"] = pageTokenRaw ? "page_token" : "system_token";
-
-  // Capture per-metric errors so callers can diagnose what failed
-  const fbMetricErrors: Record<string, string> = {};
-  const igMetricErrors: Record<string, string> = {};
+  ).then((r) => r.access_token ?? t).catch(() => t);
 
   // IG reach has a hard 30-day window limit in the Meta API
   const igSinceTs = String(Math.max(
@@ -417,31 +408,17 @@ export async function fetchOrganicData(
     Math.floor(new Date(range.until).getTime() / 1000) - 30 * 86400
   ));
 
-  async function fetchFbMetric(metric: string): Promise<PageInsightValue[]> {
-    try {
-      const r = await gql<{ data: PageInsightValue[] }>(
-        `/${facebookPageId}/insights`,
-        { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
-      );
-      return r.data ?? [];
-    } catch (e) {
-      fbMetricErrors[metric] = e instanceof Error ? e.message : "unknown";
-      return [];
-    }
-  }
+  const fetchFbMetric = (metric: string): Promise<PageInsightValue[]> =>
+    gql<{ data: PageInsightValue[] }>(
+      `/${facebookPageId}/insights`,
+      { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+    ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]);
 
-  async function fetchIgMetric(metric: string): Promise<PageInsightValue[]> {
-    try {
-      const r = await gql<{ data: PageInsightValue[] }>(
-        `/${instagramAccountId}/insights`,
-        { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
-      );
-      return r.data ?? [];
-    } catch (e) {
-      igMetricErrors[metric] = e instanceof Error ? e.message : "unknown";
-      return [];
-    }
-  }
+  const fetchIgMetric = (metric: string): Promise<PageInsightValue[]> =>
+    gql<{ data: PageInsightValue[] }>(
+      `/${instagramAccountId}/insights`,
+      { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
+    ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]);
 
   const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
@@ -525,8 +502,5 @@ export async function fetchOrganicData(
     igMedia,
     dateRange: range,
     fetchedAt: new Date().toISOString(),
-    fbMetricErrors,
-    igMetricErrors,
-    pageTokenSource,
   };
 }
