@@ -33,6 +33,7 @@ export default function Home() {
   const [resonanceLoading, setResonanceLoading] = useState(false);
   const [resonanceError, setResonanceError] = useState<string | null>(null);
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
+  const [organicError, setOrganicError] = useState<string | null>(null);
   const [account, setAccount] = useState<AccountMeta | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ResultTab>("health");
@@ -46,6 +47,7 @@ export default function Home() {
     setResonanceResult(null);
     setResonanceError(null);
     setPerformanceData(null);
+    setOrganicError(null);
     setActiveTab("health");
     setLoadingMsg("Fetching Meta account data…");
 
@@ -106,6 +108,7 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok || data.error) return; // silently skip on error
       setPerformanceData(data.performance);
+      if (data.organicError) setOrganicError(data.organicError);
     } catch {
       // silently skip — charts are optional
     }
@@ -142,6 +145,7 @@ export default function Home() {
     setResonanceResult(null);
     setResonanceError(null);
     setPerformanceData(null);
+    setOrganicError(null);
     setError(null);
     setAccount(null);
     setActiveTab("health");
@@ -361,7 +365,7 @@ export default function Home() {
                   </div>
                 )}
                 {resonanceResult && (
-                  <ResonancePanel result={resonanceResult} clientName={resonanceClientName} performance={performanceData ?? undefined} />
+                  <ResonancePanel result={resonanceResult} clientName={resonanceClientName} performance={performanceData ?? undefined} organicError={organicError ?? undefined} />
                 )}
               </>
             )}
