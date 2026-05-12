@@ -90,7 +90,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
           />
           <Tooltip
             contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
-            formatter={(v: number) => [formatValue(v, active.format), active.label]}
+            formatter={(v) => [formatValue(Number(v ?? 0), active.format), active.label]}
             labelStyle={{ color: "#475569", fontWeight: 600 }}
           />
           <Area
