@@ -57,10 +57,21 @@ export async function POST(req: NextRequest) {
         : Promise.resolve(null),
     ]);
 
-    // If page insights are empty, probe the API to get diagnostic info
+    // Diagnose when organic charts will be empty (regardless of reason)
     let organicError: string | null = null;
-    if (organic && organic.pageInsights.length === 0 && client?.facebookPageId) {
-      organicError = await probeInsightsError(token, client.facebookPageId);
+    if (organic && client?.facebookPageId) {
+      const fbReach = extractDailySeries(organic.pageInsights, "page_reach");
+      if (fbReach.length === 0) {
+        if (organic.pageInsights.length === 0) {
+          // API returned no metric objects at all
+          organicError = await probeInsightsError(token, client.facebookPageId);
+        } else {
+          // Metric objects came back but values are empty or wrong type
+          const first = organic.pageInsights[0];
+          const sample = first.values.slice(0, 2);
+          organicError = `pageInsights has ${organic.pageInsights.length} metric(s) [${organic.pageInsights.map(i => i.name).join(", ")}] but page_reach has 0 usable values. "${first.name}" sample values: ${JSON.stringify(sample)}`;
+        }
+      }
     }
 
     const performance: PerformanceData = {
