@@ -8,6 +8,7 @@ interface Props {
   result: ResonanceResult;
   clientName: string;
   performance?: PerformanceData;
+  organicError?: string;
 }
 
 const GRADE_COLORS: Record<string, string> = {
@@ -222,7 +223,7 @@ function ScorePanel({
   );
 }
 
-export default function ResonancePanel({ result, clientName, performance }: Props) {
+export default function ResonancePanel({ result, clientName, performance, organicError }: Props) {
   const [active, setActive] = useState<"ads" | "organic">("ads");
 
   return (
@@ -323,6 +324,15 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                   ]}
                 />
               </div>
+            </div>
+          ) : organicError ? (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm">
+              <p className="font-semibold text-amber-800 mb-1">Organic chart data unavailable</p>
+              <p className="text-amber-700 text-xs">{organicError}</p>
+              <p className="text-amber-600 text-xs mt-2">
+                The system user token needs <code className="bg-amber-100 px-1 rounded">read_insights</code> permission on the Facebook Page.
+                In Meta Business Settings → System Users, ensure the user has Analyst or higher role on this Page.
+              </p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center text-sm text-slate-400">

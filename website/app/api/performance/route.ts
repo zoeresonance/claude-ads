@@ -4,6 +4,8 @@ import { getClientForAccount } from "@/lib/clients";
 import type { PerformanceData, DailyMetric } from "@/lib/types";
 import type { PageInsightValue, DateRange } from "@/lib/meta-api";
 
+const META_BASE = "https://graph.facebook.com/v21.0";
+
 function extractDailySeries(insights: PageInsightValue[], metricName: string): DailyMetric[] {
   const item = insights.find((i) => i.name === metricName);
   if (!item) return [];
@@ -13,6 +15,24 @@ function extractDailySeries(insights: PageInsightValue[], metricName: string): D
       date: v.end_time.slice(0, 10),
       value: v.value as number,
     }));
+}
+
+async function probeInsightsError(token: string, pageId: string): Promise<string | null> {
+  try {
+    const params = new URLSearchParams({
+      metric: "page_reach",
+      period: "day",
+      since: String(Math.floor(Date.now() / 1000) - 86400 * 3),
+      until: String(Math.floor(Date.now() / 1000)),
+      access_token: token,
+    });
+    const res = await fetch(`${META_BASE}/${pageId}/insights?${params}`);
+    const json = await res.json();
+    if (json.error) return `${json.error.message} (code ${json.error.code})`;
+    return null;
+  } catch {
+    return "Could not reach the Facebook Page Insights API";
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -32,6 +52,12 @@ export async function POST(req: NextRequest) {
         ? fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange as DateRange | undefined)
         : Promise.resolve(null),
     ]);
+
+    // If organic fetched but page insights came back empty, probe for the real error
+    let organicError: string | null = null;
+    if (organic && organic.pageInsights.length === 0 && client?.facebookPageId) {
+      organicError = await probeInsightsError(token, client.facebookPageId);
+    }
 
     const performance: PerformanceData = {
       ads: {
@@ -63,7 +89,7 @@ export async function POST(req: NextRequest) {
         : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], pageViews: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
     };
 
-    return NextResponse.json({ performance });
+    return NextResponse.json({ performance, organicError });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: `Performance fetch failed: ${msg}` }, { status: 500 });
