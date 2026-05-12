@@ -20,7 +20,7 @@ function extractDailySeries(insights: PageInsightValue[], metricName: string): D
 async function probeInsightsError(token: string, pageId: string): Promise<string> {
   try {
     const params = new URLSearchParams({
-      metric: "page_reach",
+      metric: "page_impressions_unique",
       period: "day",
       since: String(Math.floor(Date.now() / 1000) - 86400 * 7),
       until: String(Math.floor(Date.now() / 1000)),
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     // Diagnose when organic charts will be empty (regardless of reason)
     let organicError: string | null = null;
     if (organic && client?.facebookPageId) {
-      const fbReach = extractDailySeries(organic.pageInsights, "page_reach");
+      const fbReach = extractDailySeries(organic.pageInsights, "page_impressions_unique");
       if (fbReach.length === 0) {
         if (organic.pageInsights.length === 0) {
           // API returned no metric objects at all
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
           // Metric objects came back but values are empty or wrong type
           const first = organic.pageInsights[0];
           const sample = first.values.slice(0, 2);
-          organicError = `pageInsights has ${organic.pageInsights.length} metric(s) [${organic.pageInsights.map(i => i.name).join(", ")}] but page_reach has 0 usable values. "${first.name}" sample values: ${JSON.stringify(sample)}`;
+          organicError = `pageInsights has ${organic.pageInsights.length} metric(s) [${organic.pageInsights.map(i => i.name).join(", ")}] but page_impressions_unique has 0 usable values. "${first.name}" sample values: ${JSON.stringify(sample)}`;
         }
       }
     }
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       pageInsightsNames: organic?.pageInsights.map(i => i.name) ?? [],
       organicErrorMsg: organicError,
       fbMetricCounts: organic ? {
-        reach: extractDailySeries(organic.pageInsights, "page_reach").length,
+        reach: extractDailySeries(organic.pageInsights, "page_impressions_unique").length,
         impressions: extractDailySeries(organic.pageInsights, "page_impressions").length,
         engagements: extractDailySeries(organic.pageInsights, "page_post_engagements").length,
         engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users").length,
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
         profileViews: extractDailySeries(organic.igInsights, "profile_views").length,
         follows: extractDailySeries(organic.igInsights, "follows").length,
       } : null,
-      sampleFbReach: organic?.pageInsights.find(i => i.name === "page_reach")?.values.slice(0, 2) ?? [],
+      sampleFbReach: organic?.pageInsights.find(i => i.name === "page_impressions_unique")?.values.slice(0, 2) ?? [],
     };
 
     const performance: PerformanceData = {
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
       organic: organic
         ? {
             fb: {
-              reach:        extractDailySeries(organic.pageInsights, "page_reach"),
+              reach:        extractDailySeries(organic.pageInsights, "page_impressions_unique"),
               impressions:  extractDailySeries(organic.pageInsights, "page_impressions"),
               engagements:  extractDailySeries(organic.pageInsights, "page_post_engagements"),
               engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users"),
