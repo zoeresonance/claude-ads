@@ -409,7 +409,7 @@ export async function fetchOrganicData(
         {
           metric: [
             "page_impressions",
-            "page_reach",
+            "page_impressions_unique",
             "page_engaged_users",
             "page_post_engagements",
             "page_fan_adds_unique",
