@@ -259,13 +259,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     fbSections.push(`Page: ${organic.page.name} | Followers: ${organic.page.followers_count?.toLocaleString() ?? "N/A"} | Likes: ${organic.page.fan_count?.toLocaleString() ?? "N/A"}`);
   }
   if (organic.pageInsights.length) {
-    fbSections.push("28-Day Page Metrics:");
-    fbSections.push(`  Reach: ${getInsightValue(organic.pageInsights, "page_reach")}`);
-    fbSections.push(`  Impressions: ${getInsightValue(organic.pageInsights, "page_impressions")}`);
-    fbSections.push(`  Engaged Users: ${getInsightValue(organic.pageInsights, "page_engaged_users")}`);
+    fbSections.push("Page Metrics (selected date range):");
+    fbSections.push(`  Reach (unique): ${getInsightValue(organic.pageInsights, "page_impressions_unique")}`);
     fbSections.push(`  Post Engagements: ${getInsightValue(organic.pageInsights, "page_post_engagements")}`);
-    fbSections.push(`  Page Views: ${getInsightValue(organic.pageInsights, "page_views_total")}`);
-    fbSections.push(`  New Followers: ${getInsightValue(organic.pageInsights, "page_fan_adds_unique")}`);
   }
   if (organic.pagePosts.length) {
     fbSections.push(`\nRecent Posts (${organic.pagePosts.length}):`);
@@ -276,11 +272,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
   // Instagram organic
   const igSections: string[] = [];
   if (organic.igInsights.length) {
-    igSections.push("28-Day Instagram Metrics:");
+    igSections.push("Instagram Metrics (last 30 days — Meta API hard limit for reach):");
     igSections.push(`  Reach: ${getInsightValue(organic.igInsights, "reach")}`);
-    igSections.push(`  Impressions: ${getInsightValue(organic.igInsights, "impressions")}`);
-    igSections.push(`  Profile Views: ${getInsightValue(organic.igInsights, "profile_views")}`);
-    igSections.push(`  Accounts Engaged: ${getInsightValue(organic.igInsights, "accounts_engaged")}`);
+    igSections.push(`  Follower Count: ${getInsightValue(organic.igInsights, "follower_count")}`);
   }
   if (organic.igAudienceDemographics.length) {
     igSections.push("\nAudience Demographics (LIFETIME — represents all-time follower base, NOT this date range):");
