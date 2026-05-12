@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
               reach:        extractDailySeries(organic.pageInsights, "page_reach"),
               impressions:  extractDailySeries(organic.pageInsights, "page_impressions"),
               engagements:  extractDailySeries(organic.pageInsights, "page_post_engagements"),
+              engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users"),
               pageViews:    extractDailySeries(organic.pageInsights, "page_views_total"),
               newFollowers: extractDailySeries(organic.pageInsights, "page_fan_adds_unique"),
             },
@@ -56,9 +57,10 @@ export async function POST(req: NextRequest) {
               impressions:    extractDailySeries(organic.igInsights, "impressions"),
               accountsEngaged:extractDailySeries(organic.igInsights, "accounts_engaged"),
               profileViews:   extractDailySeries(organic.igInsights, "profile_views"),
+              follows:        extractDailySeries(organic.igInsights, "follows"),
             },
           }
-        : { fb: { reach: [], impressions: [], engagements: [], pageViews: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [] } },
+        : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], pageViews: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
     };
 
     return NextResponse.json({ performance });

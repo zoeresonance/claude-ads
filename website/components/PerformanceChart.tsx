@@ -41,7 +41,29 @@ export default function PerformanceChart({ title, metrics }: Props) {
   const [activeKey, setActiveKey] = useState(metrics[0]?.key ?? "");
   const active = metrics.find((m) => m.key === activeKey) ?? metrics[0];
 
-  if (!active || active.data.length === 0) return null;
+  if (!active || active.data.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+          <h4 className="font-semibold text-slate-800 text-sm">{title}</h4>
+          <div className="flex gap-1 flex-wrap">
+            {metrics.map((m) => (
+              <button key={m.key} onClick={() => setActiveKey(m.key)}
+                className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                  activeKey === m.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                }`}>
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-slate-400 mb-4">{active?.description ?? ""}</p>
+        <div className="h-[180px] flex items-center justify-center text-sm text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+          No data available for this period
+        </div>
+      </div>
+    );
+  }
 
   const chartData = active.data.map((d) => ({ date: shortDate(d.date), value: d.value }));
 

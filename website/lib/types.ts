@@ -110,6 +110,7 @@ export interface PerformanceData {
       reach: DailyMetric[];
       impressions: DailyMetric[];
       engagements: DailyMetric[];
+      engagedUsers: DailyMetric[];
       pageViews: DailyMetric[];
       newFollowers: DailyMetric[];
     };
@@ -118,6 +119,7 @@ export interface PerformanceData {
       impressions: DailyMetric[];
       accountsEngaged: DailyMetric[];
       profileViews: DailyMetric[];
+      follows: DailyMetric[];
     };
   };
 }

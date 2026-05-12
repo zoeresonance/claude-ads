@@ -443,7 +443,7 @@ export async function fetchOrganicData(
       gql<{ data: PageInsightValue[] }>(
         `/${instagramAccountId}/insights`,
         {
-          metric: ["reach", "impressions", "profile_views", "accounts_engaged"].join(","),
+          metric: ["reach", "impressions", "profile_views", "accounts_engaged", "follows"].join(","),
           period: "day",
           since: sinceTs,
           until: untilTs,
