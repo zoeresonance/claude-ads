@@ -395,6 +395,13 @@ export async function fetchOrganicData(
   const sinceTs = String(Math.floor(new Date(range.since).getTime() / 1000));
   const untilTs = String(Math.floor(new Date(range.until).getTime() / 1000));
 
+  // Page Insights requires a Page Access Token, not a system user token.
+  // Exchange the system token for the page-specific token first.
+  const pageToken = await gql<{ access_token?: string; id: string }>(
+    `/${facebookPageId}`,
+    { fields: "access_token", access_token: t }
+  ).then((r) => r.access_token ?? t).catch(() => t);
+
   const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
       // Page summary
@@ -417,7 +424,7 @@ export async function fetchOrganicData(
           period: "day",
           since: sinceTs,
           until: untilTs,
-          access_token: t,
+          access_token: pageToken,
         }
       ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
 
@@ -435,7 +442,7 @@ export async function fetchOrganicData(
         since: sinceTs,
         until: untilTs,
         limit: "50",
-        access_token: t,
+        access_token: pageToken,
       }).catch(() => [] as PagePost[]),
 
       // Instagram account-level insights for the date range

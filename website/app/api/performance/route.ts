@@ -19,12 +19,17 @@ function extractDailySeries(insights: PageInsightValue[], metricName: string): D
 
 async function probeInsightsError(token: string, pageId: string): Promise<string> {
   try {
+    // Exchange system token for page token first
+    const ptRes = await fetch(`${META_BASE}/${pageId}?fields=access_token&access_token=${encodeURIComponent(token)}`);
+    const ptJson = await ptRes.json();
+    const pageToken: string = ptJson.access_token ?? token;
+
     const params = new URLSearchParams({
       metric: "page_impressions_unique",
       period: "day",
       since: String(Math.floor(Date.now() / 1000) - 86400 * 7),
       until: String(Math.floor(Date.now() / 1000)),
-      access_token: token,
+      access_token: pageToken,
     });
     const res = await fetch(`${META_BASE}/${pageId}/insights?${params}`);
     const json = await res.json();
