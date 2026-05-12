@@ -13,24 +13,148 @@ interface Props {
   loading: boolean;
 }
 
+function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
+  const [name, setName] = useState("");
+  const [adAccountId, setAdAccountId] = useState("");
+  const [facebookPageId, setFacebookPageId] = useState("");
+  const [instagramAccountId, setInstagramAccountId] = useState("");
+  const [auditDoc, setAuditDoc] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, adAccountId, facebookPageId, instagramAccountId, auditDoc }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) throw new Error(data.error);
+      onAdded({ name: data.name, adAccountId: data.adAccountId });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create client");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3 border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">New Client</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">
+            Client Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            placeholder="e.g. Stonecreek"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">
+            Ad Account ID <span className="text-red-500">*</span>
+          </label>
+          <input
+            value={adAccountId}
+            onChange={(e) => setAdAccountId(e.target.value)}
+            required
+            placeholder="e.g. act_123456789"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Facebook Page ID</label>
+          <input
+            value={facebookPageId}
+            onChange={(e) => setFacebookPageId(e.target.value)}
+            placeholder="e.g. 22340809962"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Instagram Account ID</label>
+          <input
+            value={instagramAccountId}
+            onChange={(e) => setInstagramAccountId(e.target.value)}
+            placeholder="e.g. 17841401460562901"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-slate-600 mb-1">
+          Persona / Audience Audit Doc
+          <span className="ml-1 text-slate-400 font-normal">(optional — powers Resonance Score)</span>
+        </label>
+        <textarea
+          value={auditDoc}
+          onChange={(e) => setAuditDoc(e.target.value)}
+          rows={5}
+          placeholder="Paste your audience persona document here…"
+          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-y font-mono"
+        />
+      </div>
+
+      {error && (
+        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+      )}
+
+      <div className="flex items-center gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        >
+          {saving ? "Creating…" : "Create Client"}
+        </button>
+        <p className="text-xs text-slate-400">
+          Facebook Page ID and Instagram Account ID are needed for Resonance Score.
+        </p>
+      </div>
+    </form>
+  );
+}
+
 export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [fetchingClients, setFetchingClients] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange());
+  const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
+    loadClients();
+  }, []);
+
+  function loadClients() {
+    setFetchingClients(true);
     fetch("/api/clients")
       .then((r) => r.json())
       .then((json) => {
         if (json.error) throw new Error(json.error);
         setClients(json.clients);
-        if (json.clients.length > 0) setSelectedId(json.clients[0].adAccountId);
+        if (json.clients.length > 0 && !selectedId) setSelectedId(json.clients[0].adAccountId);
       })
       .catch((err) => setFetchError(err.message))
       .finally(() => setFetchingClients(false));
-  }, []);
+  }
+
+  function handleClientAdded(client: Client) {
+    setClients((prev) => [...prev, client].sort((a, b) => a.name.localeCompare(b.name)));
+    setSelectedId(client.adAccountId);
+    setShowAddForm(false);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,9 +181,18 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
 
       {/* Client selector */}
       <div className="space-y-1.5">
-        <label className="block text-sm font-semibold text-slate-700">
-          Client <span className="text-red-500">*</span>
-        </label>
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-semibold text-slate-700">
+            Client <span className="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setShowAddForm((v) => !v)}
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+          >
+            {showAddForm ? "Cancel" : "+ Add new client"}
+          </button>
+        </div>
 
         {fetchingClients && (
           <p className="text-sm text-slate-500 animate-pulse">Loading clients…</p>
@@ -86,11 +219,13 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           </select>
         )}
 
-        {!fetchingClients && !fetchError && clients.length === 0 && (
+        {!fetchingClients && !fetchError && clients.length === 0 && !showAddForm && (
           <p className="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-            No clients configured. Add a client folder under <code className="text-xs bg-slate-100 px-1 rounded">website/clients/</code>.
+            No clients yet. Click <strong>+ Add new client</strong> to get started.
           </p>
         )}
+
+        {showAddForm && <AddClientForm onAdded={handleClientAdded} />}
       </div>
 
       {/* Date range */}
