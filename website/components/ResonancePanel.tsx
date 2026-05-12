@@ -9,6 +9,7 @@ interface Props {
   clientName: string;
   performance?: PerformanceData;
   organicError?: string;
+  perfDebug?: Record<string, unknown>;
 }
 
 const GRADE_COLORS: Record<string, string> = {
@@ -223,7 +224,7 @@ function ScorePanel({
   );
 }
 
-export default function ResonancePanel({ result, clientName, performance, organicError }: Props) {
+export default function ResonancePanel({ result, clientName, performance, organicError, perfDebug }: Props) {
   const [active, setActive] = useState<"ads" | "organic">("ads");
 
   return (
@@ -294,6 +295,12 @@ export default function ResonancePanel({ result, clientName, performance, organi
         </>
       ) : (
         <>
+          {perfDebug && (
+            <div className="bg-slate-800 text-slate-100 rounded-xl p-4 text-xs font-mono">
+              <p className="text-slate-400 mb-1">Performance Debug</p>
+              <pre>{JSON.stringify(perfDebug, null, 2)}</pre>
+            </div>
+          )}
           {performance ? (
             <div className="space-y-4">
               <PerformanceChart

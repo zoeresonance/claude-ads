@@ -49,6 +49,15 @@ export async function POST(req: NextRequest) {
 
     const client = getClientForAccount(accountId);
 
+    // Debug: always expose what the server sees
+    const debugInfo = {
+      accountId,
+      clientFound: !!client,
+      clientName: client?.name ?? null,
+      hasFbPageId: !!client?.facebookPageId,
+      hasIgId: !!client?.instagramAccountId,
+    };
+
     // Fetch daily ads data + organic data in parallel (organic only if client config exists)
     const [dailyAds, organic] = await Promise.all([
       fetchDailyAdsInsights(token, accountId, dateRange as DateRange | undefined),
@@ -103,7 +112,7 @@ export async function POST(req: NextRequest) {
         : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
     };
 
-    return NextResponse.json({ performance, organicError });
+    return NextResponse.json({ performance, organicError, debugInfo });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: `Performance fetch failed: ${msg}` }, { status: 500 });
