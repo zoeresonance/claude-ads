@@ -332,9 +332,8 @@ export default function ResonancePanel({ result, clientName, performance, organi
                 <PerformanceChart
                   title="Instagram — Organic (last 30 days)"
                   metrics={[
-                    { key: "reach",         label: "Reach",          description: "Unique accounts that saw your posts or stories.",                data: performance.organic.ig.reach,         format: "number", color: "#e1306c" },
-                    { key: "followers",     label: "Follower Count", description: "Total Instagram followers at each point in time.",              data: performance.organic.ig.followerCount, format: "number", color: "#7c3aed" },
-                    { key: "websiteClicks", label: "Website Clicks", description: "Taps on the website link in your Instagram profile.",           data: performance.organic.ig.websiteClicks, format: "number", color: "#d97706" },
+                    { key: "reach",     label: "Reach",          description: "Unique accounts that saw your posts or stories.",    data: performance.organic.ig.reach,         format: "number", color: "#e1306c" },
+                    { key: "followers", label: "Follower Count", description: "Total Instagram followers at each point in time.",   data: performance.organic.ig.followerCount, format: "number", color: "#7c3aed" },
                   ]}
                 />
               </div>

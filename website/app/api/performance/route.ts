@@ -99,7 +99,6 @@ export async function POST(req: NextRequest) {
       igMetricCounts: organic ? {
         reach: extractDailySeries(organic.igInsights, "reach").length,
         followerCount: extractDailySeries(organic.igInsights, "follower_count").length,
-        websiteClicks: extractDailySeries(organic.igInsights, "website_clicks").length,
       } : null,
       sampleFbReach: organic?.pageInsights.find(i => i.name === "page_impressions_unique")?.values.slice(0, 2) ?? [],
     };
@@ -122,10 +121,9 @@ export async function POST(req: NextRequest) {
             ig: {
               reach:        extractDailySeries(organic.igInsights, "reach"),
               followerCount:extractDailySeries(organic.igInsights, "follower_count"),
-              websiteClicks:extractDailySeries(organic.igInsights, "website_clicks"),
             },
           }
-        : { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [], websiteClicks: [] } },
+        : { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [] } },
     };
 
     return NextResponse.json({ performance, organicError, debugInfo });
