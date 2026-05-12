@@ -475,12 +475,11 @@ export async function fetchOrganicData(
       }).catch(() => [] as PagePost[]),
 
       // IG metrics that support daily time-series (capped to 30-day window)
-      // profile_views/accounts_engaged require metric_type=total_value (no daily series)
+      // profile_views/accounts_engaged/website_clicks require metric_type=total_value (aggregates, no daily series)
       // impressions is not valid at account level in v21
       Promise.all([
         "reach",
         "follower_count",
-        "website_clicks",
       ].map(fetchIgMetric)).then((results) => results.flat()),
 
       // Instagram audience demographics — lifetime only (API limitation)

@@ -113,7 +113,6 @@ export interface PerformanceData {
     ig: {
       reach: DailyMetric[];
       followerCount: DailyMetric[];
-      websiteClicks: DailyMetric[];
     };
   };
 }
