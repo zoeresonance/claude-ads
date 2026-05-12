@@ -108,17 +108,12 @@ export interface PerformanceData {
   organic: {
     fb: {
       reach: DailyMetric[];
-      impressions: DailyMetric[];
       engagements: DailyMetric[];
-      engagedUsers: DailyMetric[];
-      newFollowers: DailyMetric[];
     };
     ig: {
       reach: DailyMetric[];
-      impressions: DailyMetric[];
-      accountsEngaged: DailyMetric[];
-      profileViews: DailyMetric[];
-      follows: DailyMetric[];
+      followerCount: DailyMetric[];
+      websiteClicks: DailyMetric[];
     };
   };
 }

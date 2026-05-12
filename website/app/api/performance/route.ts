@@ -94,15 +94,12 @@ export async function POST(req: NextRequest) {
       organicErrorMsg: organicError,
       fbMetricCounts: organic ? {
         reach: extractDailySeries(organic.pageInsights, "page_impressions_unique").length,
-        impressions: extractDailySeries(organic.pageInsights, "page_impressions").length,
         engagements: extractDailySeries(organic.pageInsights, "page_post_engagements").length,
-        engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users").length,
-        newFollowers: extractDailySeries(organic.pageInsights, "page_fan_adds_unique").length,
       } : null,
       igMetricCounts: organic ? {
         reach: extractDailySeries(organic.igInsights, "reach").length,
-        accountsEngaged: extractDailySeries(organic.igInsights, "accounts_engaged").length,
-        profileViews: extractDailySeries(organic.igInsights, "profile_views").length,
+        followerCount: extractDailySeries(organic.igInsights, "follower_count").length,
+        websiteClicks: extractDailySeries(organic.igInsights, "website_clicks").length,
       } : null,
       sampleFbReach: organic?.pageInsights.find(i => i.name === "page_impressions_unique")?.values.slice(0, 2) ?? [],
     };
@@ -119,21 +116,16 @@ export async function POST(req: NextRequest) {
       organic: organic
         ? {
             fb: {
-              reach:        extractDailySeries(organic.pageInsights, "page_impressions_unique"),
-              impressions:  extractDailySeries(organic.pageInsights, "page_impressions"),
-              engagements:  extractDailySeries(organic.pageInsights, "page_post_engagements"),
-              engagedUsers: extractDailySeries(organic.pageInsights, "page_engaged_users"),
-              newFollowers: extractDailySeries(organic.pageInsights, "page_fan_adds_unique"),
+              reach:      extractDailySeries(organic.pageInsights, "page_impressions_unique"),
+              engagements:extractDailySeries(organic.pageInsights, "page_post_engagements"),
             },
             ig: {
-              reach:          extractDailySeries(organic.igInsights, "reach"),
-              impressions:    extractDailySeries(organic.igInsights, "impressions"),
-              accountsEngaged:extractDailySeries(organic.igInsights, "accounts_engaged"),
-              profileViews:   extractDailySeries(organic.igInsights, "profile_views"),
-              follows:        extractDailySeries(organic.igInsights, "follows"),
+              reach:        extractDailySeries(organic.igInsights, "reach"),
+              followerCount:extractDailySeries(organic.igInsights, "follower_count"),
+              websiteClicks:extractDailySeries(organic.igInsights, "website_clicks"),
             },
           }
-        : { fb: { reach: [], impressions: [], engagements: [], engagedUsers: [], newFollowers: [] }, ig: { reach: [], impressions: [], accountsEngaged: [], profileViews: [], follows: [] } },
+        : { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [], websiteClicks: [] } },
     };
 
     return NextResponse.json({ performance, organicError, debugInfo });

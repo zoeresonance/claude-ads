@@ -411,6 +411,12 @@ export async function fetchOrganicData(
   const fbMetricErrors: Record<string, string> = {};
   const igMetricErrors: Record<string, string> = {};
 
+  // IG reach has a hard 30-day window limit in the Meta API
+  const igSinceTs = String(Math.max(
+    Number(sinceTs),
+    Math.floor(new Date(range.until).getTime() / 1000) - 30 * 86400
+  ));
+
   async function fetchFbMetric(metric: string): Promise<PageInsightValue[]> {
     try {
       const r = await gql<{ data: PageInsightValue[] }>(
@@ -428,7 +434,7 @@ export async function fetchOrganicData(
     try {
       const r = await gql<{ data: PageInsightValue[] }>(
         `/${instagramAccountId}/insights`,
-        { metric, period: "day", since: sinceTs, until: untilTs, access_token: t }
+        { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
       );
       return r.data ?? [];
     } catch (e) {
@@ -445,13 +451,10 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Page-level metrics — each fetched individually so errors are isolated
+      // Valid FB page insights in Meta API v21 — page_impressions/engaged_users/fan_adds are deprecated
       Promise.all([
-        "page_impressions",
         "page_impressions_unique",
-        "page_engaged_users",
         "page_post_engagements",
-        "page_fan_adds_unique",
       ].map(fetchFbMetric)).then((results) => results.flat()),
 
       // Recent FB posts (filtered by date range below)
@@ -471,9 +474,13 @@ export async function fetchOrganicData(
         access_token: pageToken,
       }).catch(() => [] as PagePost[]),
 
-      // Instagram account-level insights — each fetched individually
+      // IG metrics that support daily time-series (capped to 30-day window)
+      // profile_views/accounts_engaged require metric_type=total_value (no daily series)
+      // impressions is not valid at account level in v21
       Promise.all([
-        "reach", "impressions", "profile_views", "accounts_engaged",
+        "reach",
+        "follower_count",
+        "website_clicks",
       ].map(fetchIgMetric)).then((results) => results.flat()),
 
       // Instagram audience demographics — lifetime only (API limitation)
