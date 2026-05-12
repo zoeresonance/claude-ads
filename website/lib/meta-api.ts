@@ -410,23 +410,20 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Page-level metrics for the date range
-      gql<{ data: PageInsightValue[] }>(
-        `/${facebookPageId}/insights`,
-        {
-          metric: [
-            "page_impressions",
-            "page_impressions_unique",
-            "page_engaged_users",
-            "page_post_engagements",
-            "page_fan_adds_unique",
-          ].join(","),
-          period: "day",
-          since: sinceTs,
-          until: untilTs,
-          access_token: pageToken,
-        }
-      ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
+      // Page-level metrics — fetch each separately so one invalid metric
+      // doesn't poison the entire batch.
+      Promise.all([
+        "page_impressions",
+        "page_impressions_unique",
+        "page_engaged_users",
+        "page_post_engagements",
+        "page_fan_adds_unique",
+      ].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${facebookPageId}/insights`,
+          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )).then((results) => results.flat()),
 
       // Recent FB posts (filtered by date range below)
       paginate<PagePost>(`/${facebookPageId}/posts`, {
@@ -445,17 +442,15 @@ export async function fetchOrganicData(
         access_token: pageToken,
       }).catch(() => [] as PagePost[]),
 
-      // Instagram account-level insights for the date range
-      gql<{ data: PageInsightValue[] }>(
-        `/${instagramAccountId}/insights`,
-        {
-          metric: ["reach", "impressions", "profile_views", "accounts_engaged", "follows"].join(","),
-          period: "day",
-          since: sinceTs,
-          until: untilTs,
-          access_token: t,
-        }
-      ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
+      // Instagram account-level insights — fetch each metric separately
+      Promise.all([
+        "reach", "impressions", "profile_views", "accounts_engaged", "follows",
+      ].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${instagramAccountId}/insights`,
+          { metric, period: "day", since: sinceTs, until: untilTs, access_token: t }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )).then((results) => results.flat()),
 
       // Instagram audience demographics — lifetime only (API limitation)
       gql<{ data: PageInsightValue[] }>(
