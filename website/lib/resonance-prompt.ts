@@ -232,8 +232,10 @@ function summarizeIgPost(post: IgMedia, index: number): string {
   }
   if (post.like_count != null) metrics.push(`likes: ${post.like_count}`);
   if (post.comments_count != null) metrics.push(`comments: ${post.comments_count}`);
+  // media_product_type distinguishes Reels (REELS) from regular feed video (FEED)
+  const typeLabel = post.media_product_type ?? post.media_type;
   const date = new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  return `  IG Post ${index + 1} [${post.media_type}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
+  return `  IG Post ${index + 1} [${typeLabel}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
 }
 
 function summarizeAdCreative(ad: MetaAd, index: number): string {

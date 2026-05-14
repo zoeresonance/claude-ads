@@ -375,6 +375,7 @@ export interface IgMedia {
   id: string;
   caption?: string;
   media_type: string;
+  media_product_type?: string;
   timestamp: string;
   like_count?: number;
   comments_count?: number;
@@ -548,6 +549,7 @@ export async function fetchOrganicData(
           "id",
           "caption",
           "media_type",
+          "media_product_type",
           "timestamp",
           "like_count",
           "comments_count",
