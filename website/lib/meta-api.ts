@@ -317,6 +317,21 @@ export interface DailyAdsInsight {
   frequency: string;
 }
 
+export async function fetchInsightsForPeriod(
+  token: string,
+  accountId: string,
+  dateRange: DateRange
+): Promise<MetaInsights | null> {
+  const actId = accountId.startsWith("act_") ? accountId : `act_${accountId}`;
+  const timeRange = JSON.stringify({ since: dateRange.since, until: dateRange.until });
+  return gql<{ data: MetaInsights[] }>(`/${actId}/insights`, {
+    fields: INSIGHT_FIELDS,
+    time_range: timeRange,
+    level: "account",
+    access_token: token.trim(),
+  }).then((r) => r.data?.[0] ?? null).catch(() => null);
+}
+
 export async function fetchDailyAdsInsights(
   token: string,
   accountId: string,

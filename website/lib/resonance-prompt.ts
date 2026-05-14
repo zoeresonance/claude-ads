@@ -1,4 +1,4 @@
-import type { MetaFullData, MetaAd, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
+import type { MetaFullData, MetaAd, MetaInsights, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
 
 // ─── Ads Resonance ────────────────────────────────────────────────────────────
 
@@ -13,6 +13,9 @@ Your job is to analyze whether the paid ads are resonating with the described pe
 - MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — reflect the persona's values, motivations, and communication preferences?
 - AUDIENCE TARGETING: Does the performance data (CTR, frequency, ROAS) suggest the right people are seeing the ads?
 - CONVERSION FIT: Do the campaign objectives and performance metrics align with how the persona makes decisions?
+
+CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
+Weight positive growth trajectory heavily. A brand improving CTR by 40% period-over-period is building resonance even if the absolute number is below industry average. Significant improvement (20%+) in a metric should meaningfully boost that dimension's score. Stagnation at a good number is less encouraging than strong growth from a lower base. When period-over-period data is provided, treat it as a primary signal: strong positive momentum can elevate a dimension score by 15-25 points even if the current absolute level is modest.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 
@@ -91,6 +94,9 @@ Your job is to analyze whether the organic content is resonating with the descri
 - MESSAGING ALIGNMENT: Does the caption language, tone, and storytelling match what the persona responds to?
 - PLATFORM CONSISTENCY: Is the brand showing up consistently and effectively across both Facebook and Instagram?
 
+CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
+Weight positive growth trajectory heavily. If reach, engagement, or followers are trending up significantly within the period (first half vs second half), treat that as strong evidence of growing resonance. A 30%+ improvement in the second half of the period should meaningfully boost the relevant dimension score, even if absolute numbers are modest. Growth is evidence that the content is landing — the audience is responding more over time. Penalise flat or declining trends, reward acceleration.
+
 IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics respect the selected date range.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
@@ -156,6 +162,31 @@ Top/bottom performers: 3 each max. Focus only on organic posts (no ads).
 Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function periodTrend(insights: PageInsightValue[], metricName: string): string {
+  const item = insights.find((i) => i.name === metricName);
+  if (!item) return "no data";
+  const vals = item.values
+    .filter((v) => typeof v.value === "number")
+    .map((v) => v.value as number);
+  if (vals.length < 4) return "insufficient data points";
+  const mid = Math.floor(vals.length / 2);
+  const firstAvg = vals.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+  const secondAvg = vals.slice(mid).reduce((a, b) => a + b, 0) / (vals.length - mid);
+  if (firstAvg === 0) return secondAvg > 0 ? "▲ new growth (was zero)" : "flat at zero";
+  const pct = Math.round(((secondAvg - firstAvg) / firstAvg) * 100);
+  const dir = pct >= 0 ? "▲" : "▼";
+  return `${dir}${Math.abs(pct)}% (first-half avg ${firstAvg.toFixed(0)} → second-half avg ${secondAvg.toFixed(0)})`;
+}
+
+function metricTrend(current: string | undefined, previous: string | undefined, label: string): string {
+  const c = parseFloat(current ?? "0");
+  const p = parseFloat(previous ?? "0");
+  if (p === 0) return `${label}: ${c.toFixed(2)} (no prior period)`;
+  const pct = Math.round(((c - p) / p) * 100);
+  const dir = pct >= 0 ? "▲" : "▼";
+  return `${label}: ${c.toFixed(2)} (${dir}${Math.abs(pct)}% vs prior period: ${p.toFixed(2)})`;
+}
 
 function getInsightValue(insights: PageInsightValue[], name: string): string {
   const item = insights.find((i) => i.name === name);
@@ -233,7 +264,11 @@ function summarizeAdCreative(ad: MetaAd, index: number): string {
 
 // ─── Message Builders ─────────────────────────────────────────────────────────
 
-export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData): string {
+export function buildAdsResonanceMessage(
+  auditDoc: string,
+  adData: MetaFullData,
+  previousInsights?: MetaInsights
+): string {
   const sections: string[] = [];
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
@@ -244,13 +279,22 @@ export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData)
   adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length} | Objectives: ${objectives.join(", ")}`);
 
   if (adData.accountInsights) {
-    const ai = adData.accountInsights;
-    adSections.push(`\nAccount-Level Performance (selected date range):`);
-    adSections.push(`  Spend: $${parseFloat(ai.spend ?? "0").toLocaleString()}`);
-    adSections.push(`  CTR: ${ai.ctr ? (parseFloat(ai.ctr) * 100).toFixed(2) + "%" : "N/A"}`);
-    adSections.push(`  CPM: $${parseFloat(ai.cpm ?? "0").toFixed(2)}`);
-    adSections.push(`  CPC: $${parseFloat(ai.cpc ?? "0").toFixed(2)}`);
-    adSections.push(`  Frequency: ${parseFloat(ai.frequency ?? "0").toFixed(2)}`);
+    const curr = adData.accountInsights;
+    const prev = previousInsights;
+    adSections.push(`\nAccount-Level Performance (current period vs prior equivalent period):`);
+    adSections.push(`  Spend: $${parseFloat(curr.spend ?? "0").toLocaleString()}${prev ? ` (prior: $${parseFloat(prev.spend ?? "0").toLocaleString()})` : ""}`);
+
+    const currCtr = parseFloat(curr.ctr ?? "0") * 100;
+    const prevCtr = prev ? parseFloat(prev.ctr ?? "0") * 100 : undefined;
+    adSections.push(`  ${metricTrend(currCtr.toFixed(4), prevCtr?.toFixed(4), "CTR %")}`);
+
+    adSections.push(`  ${metricTrend(curr.cpm, prev?.cpm, "CPM $")}`);
+    adSections.push(`  ${metricTrend(curr.cpc, prev?.cpc, "CPC $")}`);
+    adSections.push(`  ${metricTrend(curr.frequency, prev?.frequency, "Frequency")}`);
+
+    const currRoas = curr.purchase_roas?.[0]?.value;
+    const prevRoas = prev?.purchase_roas?.[0]?.value;
+    if (currRoas) adSections.push(`  ${metricTrend(currRoas, prevRoas, "Purchase ROAS")}`);
   }
 
   if (adData.campaignInsights.length) {
@@ -271,7 +315,7 @@ export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData)
   }
 
   sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
-  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Focus on what the ad copy, headlines, CTAs, and creative formats tell us about messaging and creative fit. Return the complete JSON ads resonance analysis.`);
+  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Where period-over-period trend data is shown, weight it heavily — strong positive momentum should significantly boost scores even if absolute levels are modest. Return the complete JSON ads resonance analysis.`);
 
   return sections.join("\n\n");
 }
@@ -290,6 +334,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     fbSections.push("Page Metrics (selected date range):");
     fbSections.push(`  Reach (unique): ${getInsightValue(organic.pageInsights, "page_impressions_unique")}`);
     fbSections.push(`  Post Engagements: ${getInsightValue(organic.pageInsights, "page_post_engagements")}`);
+    fbSections.push("Trends (first half vs second half of period):");
+    fbSections.push(`  Reach trend: ${periodTrend(organic.pageInsights, "page_impressions_unique")}`);
+    fbSections.push(`  Engagements trend: ${periodTrend(organic.pageInsights, "page_post_engagements")}`);
   }
   if (organic.pagePosts.length) {
     fbSections.push(`\nRecent Posts (${organic.pagePosts.length}):`);
@@ -303,6 +350,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     igSections.push("Instagram Metrics (last 30 days — Meta API hard limit for reach):");
     igSections.push(`  Reach: ${getInsightValue(organic.igInsights, "reach")}`);
     igSections.push(`  New Followers (daily): ${getInsightValue(organic.igInsights, "follower_count")}`);
+    igSections.push("Trends (first half vs second half of 30-day window):");
+    igSections.push(`  Reach trend: ${periodTrend(organic.igInsights, "reach")}`);
+    igSections.push(`  New followers trend: ${periodTrend(organic.igInsights, "follower_count")}`);
   }
   if (organic.igAudienceDemographics.length) {
     igSections.push("\nAudience Demographics (LIFETIME — represents all-time follower base, NOT this date range):");
@@ -324,7 +374,7 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
   }
   sections.push(`## INSTAGRAM ORGANIC DATA\n${igSections.join("\n")}`);
 
-  sections.push(`Please analyze how well this account's organic Facebook and Instagram content is resonating with the described personas. Focus on what the post engagement data, content formats, and caption language tell us about audience fit. Return the complete JSON organic resonance analysis.`);
+  sections.push(`Please analyze how well this account's organic Facebook and Instagram content is resonating with the described personas. Where trend data shows improvement across the period, weight it heavily — a brand gaining momentum is building resonance even if starting from a modest base. Return the complete JSON organic resonance analysis.`);
 
   return sections.join("\n\n");
 }

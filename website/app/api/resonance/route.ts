@@ -1,6 +1,21 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMetaData, fetchOrganicData } from "@/lib/meta-api";
+import { fetchMetaData, fetchOrganicData, fetchInsightsForPeriod } from "@/lib/meta-api";
+import type { DateRange } from "@/lib/meta-api";
+
+function previousPeriod(dateRange?: DateRange): DateRange {
+  const since = new Date(dateRange?.since ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
+  const until = new Date(dateRange?.until ?? new Date().toISOString().slice(0, 10));
+  const days = Math.round((until.getTime() - since.getTime()) / 86400000);
+  const prevUntil = new Date(since);
+  prevUntil.setDate(prevUntil.getDate() - 1);
+  const prevSince = new Date(prevUntil);
+  prevSince.setDate(prevSince.getDate() - days);
+  return {
+    since: prevSince.toISOString().slice(0, 10),
+    until: prevUntil.toISOString().slice(0, 10),
+  };
+}
 import {
   ADS_RESONANCE_SYSTEM_PROMPT,
   ORGANIC_RESONANCE_SYSTEM_PROMPT,
@@ -75,19 +90,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch ad data + organic data in parallel
-    const [adData, organic] = await Promise.all([
+    // Fetch ad data + organic data + previous period comparison in parallel
+    const prevRange = previousPeriod(dateRange as DateRange | undefined);
+    const [adData, organic, previousInsights] = await Promise.all([
       fetchMetaData(token, accountId, dateRange).catch((err) => {
         throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
       fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange).catch((err) => {
         throw new Error(`Organic data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
+      fetchInsightsForPeriod(token, accountId, prevRange).catch(() => null),
     ]);
 
     // Run both resonance analyses in parallel
     const [adsRaw, organicRaw] = await Promise.all([
-      generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData)),
+      generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData, previousInsights ?? undefined)),
       generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic)),
     ]);
 
