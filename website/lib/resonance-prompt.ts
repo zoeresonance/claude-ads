@@ -44,7 +44,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "topPerformers": [
     {
       "type": "ad",
-      "identifier": <string: ad copy snippet with creation date, e.g. "\"Feeling overwhelmed?…\" (Mar 12)">,
+      "identifier": <string: ad copy snippet with creation date, e.g. "\"Feeling overwhelmed?…\" (Mar 12, 2025)">,
       "metric": <string: e.g. "4.2% CTR">,
       "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
     }
@@ -52,7 +52,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "bottomPerformers": [
     {
       "type": "ad",
-      "identifier": <string: ad copy snippet with creation date, e.g. "\"Join us this Sunday…\" (Feb 3)">,
+      "identifier": <string: ad copy snippet with creation date, e.g. "\"Join us this Sunday…\" (Feb 3, 2025)">,
       "metric": <string: e.g. "0.3% CTR">,
       "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
     }
@@ -77,7 +77,8 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
 
 Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
 Top/bottom performers: 3 each max. Focus only on ads.
-Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual headline rewrites, actual audience parameters, actual creative directions. Not vague advice.`;
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual headline rewrites, actual audience parameters, actual creative directions. Not vague advice.
+CRITICAL: In topPerformers, bottomPerformers, recommendations, and personaFit, ONLY reference specific ads that appear in the data provided above. Do not cite, invent, or recall any ad, campaign, or creative that is not explicitly listed in the input data for this date window.`;
 
 // ─── Organic Resonance ────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "topPerformers": [
     {
       "type": <"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet with date, e.g. "\"Why I Love Stone Creek: Meet Sarah!\" (Apr 14)">,
+      "identifier": <string: post caption snippet with date, e.g. "\"Why I Love Stone Creek: Meet Sarah!\" (Apr 14, 2025)">,
       "metric": <string: e.g. "4.2% engagement rate">,
       "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
     }
@@ -134,7 +135,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "bottomPerformers": [
     {
       "type": <"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet with date, e.g. "\"Join us for our Good Friday service…\" (Mar 29)">,
+      "identifier": <string: post caption snippet with date, e.g. "\"Join us for our Good Friday service…\" (Mar 29, 2025)">,
       "metric": <string: e.g. "0.3% engagement rate">,
       "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
     }
@@ -159,7 +160,8 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
 
 Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
 Top/bottom performers: 3 each max. Focus only on organic posts (no ads).
-Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.`;
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.
+CRITICAL: In topPerformers, bottomPerformers, recommendations, and personaFit, ONLY reference specific posts that appear in the data provided above. Do not cite, invent, or recall any post, story, or reel that is not explicitly listed in the input data for this date window.`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -214,7 +216,7 @@ function summarizePost(post: PagePost, index: number): string {
     }
   }
   const type = post.attachments?.data?.[0]?.media_type ?? "text";
-  const date = new Date(post.created_time).toLocaleDateString();
+  const date = new Date(post.created_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   return `  FB Post ${index + 1} [${type}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
 }
 
@@ -230,7 +232,7 @@ function summarizeIgPost(post: IgMedia, index: number): string {
   }
   if (post.like_count != null) metrics.push(`likes: ${post.like_count}`);
   if (post.comments_count != null) metrics.push(`comments: ${post.comments_count}`);
-  const date = new Date(post.timestamp).toLocaleDateString();
+  const date = new Date(post.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   return `  IG Post ${index + 1} [${post.media_type}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
 }
 
@@ -253,7 +255,7 @@ function summarizeAdCreative(ad: MetaAd, index: number): string {
     spec?.video_data?.call_to_action?.type ||
     "";
   const format = ad.creative?.object_type || "unknown format";
-  const date = new Date(ad.created_time).toLocaleDateString();
+  const date = new Date(ad.created_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   const parts: string[] = [`[${format}, ${ad.effective_status}, created ${date}]`];
   parts.push(`Copy: "${body.slice(0, 250)}${body.length > 250 ? "…" : ""}"`);
