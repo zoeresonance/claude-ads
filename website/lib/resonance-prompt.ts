@@ -44,7 +44,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "topPerformers": [
     {
       "type": "ad",
-      "identifier": <string: ad name>,
+      "identifier": <string: ad copy snippet with creation date, e.g. "\"Feeling overwhelmed?…\" (Mar 12)">,
       "metric": <string: e.g. "4.2% CTR">,
       "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
     }
@@ -52,7 +52,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "bottomPerformers": [
     {
       "type": "ad",
-      "identifier": <string: ad name or campaign name>,
+      "identifier": <string: ad copy snippet with creation date, e.g. "\"Join us this Sunday…\" (Feb 3)">,
       "metric": <string: e.g. "0.3% CTR">,
       "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
     }
@@ -126,7 +126,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "topPerformers": [
     {
       "type": <"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet>,
+      "identifier": <string: post caption snippet with date, e.g. "\"Why I Love Stone Creek: Meet Sarah!\" (Apr 14)">,
       "metric": <string: e.g. "4.2% engagement rate">,
       "whyItLands": <string: specific connection to the persona's motivations or communication preferences>
     }
@@ -134,7 +134,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "bottomPerformers": [
     {
       "type": <"facebook_post"|"instagram_post">,
-      "identifier": <string: post caption snippet>,
+      "identifier": <string: post caption snippet with date, e.g. "\"Join us for our Good Friday service…\" (Mar 29)">,
       "metric": <string: e.g. "0.3% engagement rate">,
       "whyItMisses": <string: specific mismatch with the persona's needs or known turn-offs>
     }
@@ -253,8 +253,9 @@ function summarizeAdCreative(ad: MetaAd, index: number): string {
     spec?.video_data?.call_to_action?.type ||
     "";
   const format = ad.creative?.object_type || "unknown format";
+  const date = new Date(ad.created_time).toLocaleDateString();
 
-  const parts: string[] = [`[${format}, ${ad.effective_status}]`];
+  const parts: string[] = [`[${format}, ${ad.effective_status}, created ${date}]`];
   parts.push(`Copy: "${body.slice(0, 250)}${body.length > 250 ? "…" : ""}"`);
   if (headline) parts.push(`Headline: "${headline.slice(0, 150)}"`);
   if (cta) parts.push(`CTA: ${cta.replace(/_/g, " ")}`);
