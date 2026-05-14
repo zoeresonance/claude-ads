@@ -1,4 +1,4 @@
-import type { MetaFullData, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
+import type { MetaFullData, MetaAd, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
 
 // ─── Ads Resonance ────────────────────────────────────────────────────────────
 
@@ -9,8 +9,8 @@ You will be given:
 2. Meta paid ad performance data (campaigns, ad sets, ads, account-level and campaign-level metrics)
 
 Your job is to analyze whether the paid ads are resonating with the described personas, based on:
-- CREATIVE RESONANCE: Do the ad names, formats, and creative approaches match what the persona responds to?
-- MESSAGING ALIGNMENT: Does the ad copy and naming language reflect the persona's values, motivations, and communication preferences?
+- CREATIVE RESONANCE: Do the ad formats and creative content (images, video, carousels) match what the persona responds to?
+- MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — reflect the persona's values, motivations, and communication preferences?
 - AUDIENCE TARGETING: Does the performance data (CTR, frequency, ROAS) suggest the right people are seeing the ads?
 - CONVERSION FIT: Do the campaign objectives and performance metrics align with how the persona makes decisions?
 
@@ -203,6 +203,34 @@ function summarizeIgPost(post: IgMedia, index: number): string {
   return `  IG Post ${index + 1} [${post.media_type}, ${date}]: "${snippet}" | ${metrics.join(", ") || "no metrics"}`;
 }
 
+function summarizeAdCreative(ad: MetaAd, index: number): string {
+  const spec = ad.creative?.object_story_spec;
+  const body =
+    ad.creative?.body ||
+    spec?.link_data?.message ||
+    spec?.video_data?.message ||
+    spec?.photo_data?.caption ||
+    "(no copy)";
+  const headline =
+    ad.creative?.title ||
+    spec?.link_data?.description ||
+    spec?.video_data?.title ||
+    "";
+  const cta =
+    ad.creative?.call_to_action_type ||
+    spec?.link_data?.call_to_action?.type ||
+    spec?.video_data?.call_to_action?.type ||
+    "";
+  const format = ad.creative?.object_type || "unknown format";
+
+  const parts: string[] = [`[${format}, ${ad.effective_status}]`];
+  parts.push(`Copy: "${body.slice(0, 250)}${body.length > 250 ? "…" : ""}"`);
+  if (headline) parts.push(`Headline: "${headline.slice(0, 150)}"`);
+  if (cta) parts.push(`CTA: ${cta.replace(/_/g, " ")}`);
+
+  return `  Ad ${index + 1} ${parts.join(" | ")}`;
+}
+
 // ─── Message Builders ─────────────────────────────────────────────────────────
 
 export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData): string {
@@ -212,12 +240,12 @@ export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData)
 
   const adSections: string[] = [];
   const activeCampaigns = adData.campaigns.filter((c) => c.effective_status === "ACTIVE" || c.effective_status === "PAUSED");
-  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length}`);
-  activeCampaigns.forEach((c) => adSections.push(`  • "${c.name}" | ${c.objective} | ${c.effective_status}`));
+  const objectives = [...new Set(activeCampaigns.map((c) => c.objective))];
+  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length} | Objectives: ${objectives.join(", ")}`);
 
   if (adData.accountInsights) {
     const ai = adData.accountInsights;
-    adSections.push(`\n30-Day Paid Performance:`);
+    adSections.push(`\nAccount-Level Performance (selected date range):`);
     adSections.push(`  Spend: $${parseFloat(ai.spend ?? "0").toLocaleString()}`);
     adSections.push(`  CTR: ${ai.ctr ? (parseFloat(ai.ctr) * 100).toFixed(2) + "%" : "N/A"}`);
     adSections.push(`  CPM: $${parseFloat(ai.cpm ?? "0").toFixed(2)}`);
@@ -226,24 +254,24 @@ export function buildAdsResonanceMessage(auditDoc: string, adData: MetaFullData)
   }
 
   if (adData.campaignInsights.length) {
-    adSections.push("\nTop Campaigns by Spend:");
+    adSections.push("\nPerformance by Objective:");
     adData.campaignInsights
       .sort((a, b) => parseFloat(b.spend ?? "0") - parseFloat(a.spend ?? "0"))
       .slice(0, 5)
       .forEach((c) => {
         const ctr = c.ctr ? (parseFloat(c.ctr) * 100).toFixed(2) + "%" : "N/A";
-        adSections.push(`  • "${c.campaign_name}" | Spend: $${parseFloat(c.spend ?? "0").toFixed(0)} | CTR: ${ctr} | CPM: $${parseFloat(c.cpm ?? "0").toFixed(2)}`);
+        adSections.push(`  • ${c.objective} | Spend: $${parseFloat(c.spend ?? "0").toFixed(0)} | CTR: ${ctr} | CPM: $${parseFloat(c.cpm ?? "0").toFixed(2)}`);
       });
   }
 
   if (adData.ads.length) {
     const activeAds = adData.ads.filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED");
-    adSections.push(`\nActive/Paused Ads (${activeAds.length}):`);
-    activeAds.slice(0, 15).forEach((a) => adSections.push(`  • "${a.name}" | ${a.effective_status}`));
+    adSections.push(`\nAd Creative & Copy (${activeAds.length} active/paused):`);
+    activeAds.slice(0, 15).forEach((a, i) => adSections.push(summarizeAdCreative(a, i)));
   }
 
   sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
-  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Focus on what the ad names, campaign objectives, and performance metrics tell us about creative and messaging fit. Return the complete JSON ads resonance analysis.`);
+  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Focus on what the ad copy, headlines, CTAs, and creative formats tell us about messaging and creative fit. Return the complete JSON ads resonance analysis.`);
 
   return sections.join("\n\n");
 }

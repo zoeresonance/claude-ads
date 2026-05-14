@@ -86,6 +86,14 @@ export interface MetaAd {
     name?: string;
     object_type?: string;
     thumbnail_url?: string;
+    body?: string;
+    title?: string;
+    call_to_action_type?: string;
+    object_story_spec?: {
+      link_data?: { message?: string; description?: string; call_to_action?: { type: string } };
+      video_data?: { message?: string; title?: string; call_to_action?: { type: string } };
+      photo_data?: { caption?: string };
+    };
   };
   created_time: string;
   updated_time: string;
@@ -231,7 +239,7 @@ export async function fetchMetaData(
     // Ads
     paginate<MetaAd>(`/${actId}/ads`, {
       fields:
-        "id,name,adset_id,campaign_id,status,effective_status,creative{id,name,object_type,thumbnail_url},created_time,updated_time",
+        "id,name,adset_id,campaign_id,status,effective_status,creative{id,object_type,body,title,call_to_action_type,object_story_spec},created_time,updated_time",
       effective_status: '["ACTIVE","PAUSED","ARCHIVED"]',
       limit: "100",
       access_token: t,
