@@ -1,4 +1,4 @@
-const BASE = "https://graph.facebook.com/v21.0";
+const BASE = "https://graph.facebook.com/v21.0"; // Meta Marketing API
 
 async function gql<T>(path: string, params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams(params).toString();
