@@ -29,6 +29,7 @@ async function paginate<T>(
   return results;
 }
 
+
 export interface MetaAccount {
   id: string;
   name: string;
@@ -403,6 +404,30 @@ export interface OrganicData {
   fetchedAt: string;
 }
 
+// Like paginate, but stops following paging.next once any item's created_time
+// goes before sinceMs. Used for /posts where next-page cursors go backward in time.
+async function fetchPostsInWindow(
+  path: string,
+  params: Record<string, string>,
+  sinceMs: number
+): Promise<PagePost[]> {
+  const results: PagePost[] = [];
+  let nextUrl: string | null = `${BASE}${path}?${new URLSearchParams(params).toString()}`;
+
+  while (nextUrl && results.length < 500) {
+    const res = await fetch(nextUrl);
+    const json = await res.json() as { data?: PagePost[]; error?: { message: string }; paging?: { next?: string } };
+    if (json.error) throw new Error(`Meta API: ${json.error.message}`);
+    const page: PagePost[] = json.data ?? [];
+    results.push(...page);
+    // Stop paginating as soon as any post on this page predates sinceMs
+    const hasOldPost = page.some((p) => new Date(p.created_time).getTime() < sinceMs);
+    nextUrl = hasOldPost ? null : (json.paging?.next ?? null);
+  }
+
+  return results;
+}
+
 // ---------------------------------------------------------------------------
 // Organic fetch
 // ---------------------------------------------------------------------------
@@ -457,22 +482,27 @@ export async function fetchOrganicData(
         "page_post_engagements",
       ].map(fetchFbMetric)).then((results) => results.flat()),
 
-      // Recent FB posts (filtered by date range below)
-      paginate<PagePost>(`/${facebookPageId}/posts`, {
-        fields: [
-          "id",
-          "message",
-          "story",
-          "created_time",
-          "full_picture",
-          "attachments{media_type,type}",
-          "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
-        ].join(","),
-        since: sinceTs,
-        until: untilTs,
-        limit: "50",
-        access_token: pageToken,
-      }).catch(() => [] as PagePost[]),
+      // Recent FB posts — stop paginating once posts go before sinceTs
+      // (paging.next goes backward in time past the since boundary)
+      fetchPostsInWindow(
+        `/${facebookPageId}/posts`,
+        {
+          fields: [
+            "id",
+            "message",
+            "story",
+            "created_time",
+            "full_picture",
+            "attachments{media_type,type}",
+            "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
+          ].join(","),
+          since: sinceTs,
+          until: untilTs,
+          limit: "100",
+          access_token: pageToken,
+        },
+        Number(sinceTs) * 1000
+      ).catch(() => [] as PagePost[]),
 
       // IG metrics that support daily time-series (capped to 30-day window)
       // profile_views/accounts_engaged/website_clicks require metric_type=total_value (aggregates, no daily series)
