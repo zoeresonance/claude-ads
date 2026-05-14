@@ -402,6 +402,14 @@ export interface OrganicData {
   igMedia: IgMedia[];
   dateRange: DateRange;
   fetchedAt: string;
+  _debug?: {
+    rawFbPostCount: number;
+    rawIgMediaCount: number;
+    fbSinceMs: number;
+    fbUntilMs: number;
+    sampleFbTimestamp: string | null;
+    sampleIgTimestamp: string | null;
+  };
 }
 
 // Like paginate, but stops following paging.next once any item's created_time
@@ -563,5 +571,13 @@ export async function fetchOrganicData(
     igMedia,
     dateRange: range,
     fetchedAt: new Date().toISOString(),
+    _debug: {
+      rawFbPostCount: allPagePosts.length,
+      rawIgMediaCount: allIgMedia.length,
+      fbSinceMs,
+      fbUntilMs,
+      sampleFbTimestamp: allPagePosts[0]?.created_time ?? null,
+      sampleIgTimestamp: allIgMedia[0]?.timestamp ?? null,
+    },
   };
 }

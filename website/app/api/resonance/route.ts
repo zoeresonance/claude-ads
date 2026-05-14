@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
       dateWindow: organic.dateRange,
       fbPosts: { count: organic.pagePosts.length, oldest: allFbDates[0] ?? null, newest: allFbDates[allFbDates.length - 1] ?? null },
       igPosts: { count: organic.igMedia.length, oldest: allIgDates[0] ?? null, newest: allIgDates[allIgDates.length - 1] ?? null },
+      _raw: organic._debug,
     };
 
     return NextResponse.json({ result, clientName: client.name, diagnostics });
