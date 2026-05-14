@@ -403,16 +403,6 @@ export interface OrganicData {
   igMedia: IgMedia[];
   dateRange: DateRange;
   fetchedAt: string;
-  _debug?: {
-    rawFbPostCount: number;
-    rawIgMediaCount: number;
-    fbSinceMs: number;
-    fbUntilMs: number;
-    sampleFbTimestamp: string | null;
-    sampleIgTimestamp: string | null;
-    fbPostsError: string | null;
-    igMediaError: string | null;
-  };
 }
 
 // Like paginate, but stops following paging.next once any item's created_time
@@ -479,9 +469,6 @@ export async function fetchOrganicData(
       { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
     ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]);
 
-  let fbPostsError: string | null = null;
-  let igMediaError: string | null = null;
-
   const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
       // Page summary
@@ -518,10 +505,7 @@ export async function fetchOrganicData(
           access_token: pageToken,
         },
         Number(sinceTs) * 1000
-      ).catch((err) => {
-        fbPostsError = err instanceof Error ? err.message : String(err);
-        return [] as PagePost[];
-      }),
+      ).catch(() => [] as PagePost[]),
 
       // IG metrics that support daily time-series (capped to 30-day window)
       // profile_views/accounts_engaged/website_clicks require metric_type=total_value (aggregates, no daily series)
@@ -556,10 +540,7 @@ export async function fetchOrganicData(
         ].join(","),
         limit: "50",
         access_token: t,
-      }).catch((err) => {
-        igMediaError = err instanceof Error ? err.message : String(err);
-        return [] as IgMedia[];
-      }),
+      }).catch(() => [] as IgMedia[]),
     ]);
 
   // Filter IG media by date range (the API doesn't support since/until on /media)
@@ -587,15 +568,5 @@ export async function fetchOrganicData(
     igMedia,
     dateRange: range,
     fetchedAt: new Date().toISOString(),
-    _debug: {
-      rawFbPostCount: allPagePosts.length,
-      rawIgMediaCount: allIgMedia.length,
-      fbSinceMs,
-      fbUntilMs,
-      sampleFbTimestamp: allPagePosts[0]?.created_time ?? null,
-      sampleIgTimestamp: allIgMedia[0]?.timestamp ?? null,
-      fbPostsError,
-      igMediaError,
-    },
   };
 }
