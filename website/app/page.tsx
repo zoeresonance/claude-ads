@@ -31,6 +31,7 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [resonanceResult, setResonanceResult] = useState<ResonanceResult | null>(null);
   const [resonanceClientName, setResonanceClientName] = useState<string>("");
+  const [resonanceDiagnostics, setResonanceDiagnostics] = useState<Record<string, unknown> | null>(null);
   const [resonanceLoading, setResonanceLoading] = useState(false);
   const [resonanceError, setResonanceError] = useState<string | null>(null);
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
@@ -88,6 +89,7 @@ export default function Home() {
       if (!res.ok || data.error) throw new Error(data.error);
       setResonanceResult(data.result);
       setResonanceClientName(data.clientName ?? "");
+      setResonanceDiagnostics(data.diagnostics ?? null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Resonance analysis failed";
       // Only show error if it's not a "no config" situation
@@ -360,6 +362,12 @@ export default function Home() {
                     <p className="text-red-700 font-semibold text-sm">Resonance analysis failed</p>
                     <p className="text-red-600 text-sm mt-1">{resonanceError}</p>
                   </div>
+                )}
+                {resonanceDiagnostics && (
+                  <details className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500">
+                    <summary className="cursor-pointer font-medium text-slate-600">Post fetch diagnostics</summary>
+                    <pre className="mt-2 whitespace-pre-wrap">{JSON.stringify(resonanceDiagnostics, null, 2)}</pre>
+                  </details>
                 )}
                 {resonanceResult && (
                   <ResonancePanel result={resonanceResult} clientName={resonanceClientName} performance={performanceData ?? undefined} />
