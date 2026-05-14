@@ -409,6 +409,8 @@ export interface OrganicData {
     fbUntilMs: number;
     sampleFbTimestamp: string | null;
     sampleIgTimestamp: string | null;
+    fbPostsError: string | null;
+    igMediaError: string | null;
   };
 }
 
@@ -476,6 +478,9 @@ export async function fetchOrganicData(
       { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
     ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]);
 
+  let fbPostsError: string | null = null;
+  let igMediaError: string | null = null;
+
   const [page, pageInsights, allPagePosts, igInsights, igAudienceDemographics, allIgMedia] =
     await Promise.all([
       // Page summary
@@ -494,6 +499,9 @@ export async function fetchOrganicData(
       // since/until on /posts returns unreliable results; fetching without
       // them gives the latest posts in reverse-chron order which we then
       // trim to the selected window.
+      // NOTE: insights.metric() sub-field omitted — it requires read_insights
+      // on each post and causes the entire /posts request to fail with a
+      // permission error. Aggregate page insights are fetched separately.
       fetchPostsInWindow(
         `/${facebookPageId}/posts`,
         {
@@ -504,13 +512,15 @@ export async function fetchOrganicData(
             "created_time",
             "full_picture",
             "attachments{media_type,type}",
-            "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
           ].join(","),
           limit: "100",
           access_token: pageToken,
         },
         Number(sinceTs) * 1000
-      ).catch(() => [] as PagePost[]),
+      ).catch((err) => {
+        fbPostsError = err instanceof Error ? err.message : String(err);
+        return [] as PagePost[];
+      }),
 
       // IG metrics that support daily time-series (capped to 30-day window)
       // profile_views/accounts_engaged/website_clicks require metric_type=total_value (aggregates, no daily series)
@@ -531,6 +541,8 @@ export async function fetchOrganicData(
       ).then((r) => r.data).catch(() => [] as PageInsightValue[]),
 
       // Recent IG posts (filtered client-side by date range)
+      // NOTE: insights.metric() sub-field omitted — causes the entire /media
+      // request to fail when the token lacks per-media read_insights permission.
       paginate<IgMedia>(`/${instagramAccountId}/media`, {
         fields: [
           "id",
@@ -539,11 +551,13 @@ export async function fetchOrganicData(
           "timestamp",
           "like_count",
           "comments_count",
-          "insights.metric(reach,impressions,engagement,saved)",
         ].join(","),
         limit: "50",
         access_token: t,
-      }).catch(() => [] as IgMedia[]),
+      }).catch((err) => {
+        igMediaError = err instanceof Error ? err.message : String(err);
+        return [] as IgMedia[];
+      }),
     ]);
 
   // Filter IG media by date range (the API doesn't support since/until on /media)
@@ -578,6 +592,8 @@ export async function fetchOrganicData(
       fbUntilMs,
       sampleFbTimestamp: allPagePosts[0]?.created_time ?? null,
       sampleIgTimestamp: allIgMedia[0]?.timestamp ?? null,
+      fbPostsError,
+      igMediaError,
     },
   };
 }
