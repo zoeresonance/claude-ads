@@ -5,6 +5,7 @@ import ConnectForm from "@/components/ConnectForm";
 import InputForm from "@/components/InputForm";
 import ResultsDashboard from "@/components/ResultsDashboard";
 import ResonancePanel from "@/components/ResonancePanel";
+import MetricQualityPanel from "@/components/MetricQualityPanel";
 import type { DateRange } from "@/components/DateRangePicker";
 import type { AdMetrics, AnalysisResult, ResonanceResult, PerformanceData } from "@/lib/types";
 
@@ -366,6 +367,11 @@ export default function Home() {
               </>
             )}
           </div>
+        )}
+
+        {/* Data quality panel — visible whenever results are shown */}
+        {result && !loading && (
+          <MetricQualityPanel performance={performanceData ?? undefined} />
         )}
       </main>
 
