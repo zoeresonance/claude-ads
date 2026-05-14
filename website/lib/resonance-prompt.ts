@@ -276,6 +276,10 @@ export function buildAdsResonanceMessage(
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
 
+  const windowSince = adData.dateRange?.since ?? "unknown";
+  const windowUntil = adData.dateRange?.until ?? "unknown";
+  sections.push(`## ANALYSIS DATE WINDOW\n${windowSince} to ${windowUntil}\n\nALL ad-level data below reflects this window. If an ad is not listed here, it is outside this range and MUST NOT be referenced.`);
+
   const adSections: string[] = [];
   const activeCampaigns = adData.campaigns.filter((c) => c.effective_status === "ACTIVE" || c.effective_status === "PAUSED");
   const objectives = [...new Set(activeCampaigns.map((c) => c.objective))];
@@ -311,10 +315,12 @@ export function buildAdsResonanceMessage(
       });
   }
 
-  if (adData.ads.length) {
-    const activeAds = adData.ads.filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED");
-    adSections.push(`\nAd Creative & Copy (${activeAds.length} active/paused):`);
+  const activeAds = adData.ads.filter((a) => a.effective_status === "ACTIVE" || a.effective_status === "PAUSED");
+  if (activeAds.length) {
+    adSections.push(`\nAd Creative & Copy — ${windowSince} to ${windowUntil} (${activeAds.length} active/paused):`);
     activeAds.slice(0, 15).forEach((a, i) => adSections.push(summarizeAdCreative(a, i)));
+  } else {
+    adSections.push(`\nAd Creative & Copy — ${windowSince} to ${windowUntil}: NONE — no active or paused ads in this window. Do not cite any specific ads in topPerformers, bottomPerformers, or recommendations.`);
   }
 
   sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
@@ -328,13 +334,17 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
 
+  const windowSince = organic.dateRange?.since ?? "unknown";
+  const windowUntil = organic.dateRange?.until ?? "unknown";
+  sections.push(`## ANALYSIS DATE WINDOW\n${windowSince} to ${windowUntil}\n\nALL post-level data below has been pre-filtered to this window. If a post is not listed here, it is outside this range and MUST NOT be referenced.`);
+
   // Facebook organic
   const fbSections: string[] = [];
   if (organic.page) {
     fbSections.push(`Page: ${organic.page.name} | Followers: ${organic.page.followers_count?.toLocaleString() ?? "N/A"} | Likes: ${organic.page.fan_count?.toLocaleString() ?? "N/A"}`);
   }
   if (organic.pageInsights.length) {
-    fbSections.push("Page Metrics (selected date range):");
+    fbSections.push(`Page Metrics (${windowSince} to ${windowUntil}):`);
     fbSections.push(`  Reach (unique): ${getInsightValue(organic.pageInsights, "page_impressions_unique")}`);
     fbSections.push(`  Post Engagements: ${getInsightValue(organic.pageInsights, "page_post_engagements")}`);
     fbSections.push("Trends (first half vs second half of period):");
@@ -342,8 +352,10 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     fbSections.push(`  Engagements trend: ${periodTrend(organic.pageInsights, "page_post_engagements")}`);
   }
   if (organic.pagePosts.length) {
-    fbSections.push(`\nRecent Posts (${organic.pagePosts.length}):`);
+    fbSections.push(`\nPosts published ${windowSince} to ${windowUntil} (${organic.pagePosts.length} total):`);
     organic.pagePosts.forEach((p, i) => fbSections.push(summarizePost(p, i)));
+  } else {
+    fbSections.push(`\nPosts published ${windowSince} to ${windowUntil}: NONE — the page published no Facebook posts in this date window. Do not cite any Facebook posts in topPerformers, bottomPerformers, or recommendations.`);
   }
   sections.push(`## FACEBOOK ORGANIC DATA\n${fbSections.join("\n")}`);
 
@@ -372,8 +384,10 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     }
   }
   if (organic.igMedia.length) {
-    igSections.push(`\nRecent Posts (${organic.igMedia.length}):`);
+    igSections.push(`\nPosts published ${windowSince} to ${windowUntil} (${organic.igMedia.length} total):`);
     organic.igMedia.forEach((p, i) => igSections.push(summarizeIgPost(p, i)));
+  } else {
+    igSections.push(`\nPosts published ${windowSince} to ${windowUntil}: NONE — the account published no Instagram posts in this date window. Do not cite any Instagram posts in topPerformers, bottomPerformers, or recommendations.`);
   }
   sections.push(`## INSTAGRAM ORGANIC DATA\n${igSections.join("\n")}`);
 
