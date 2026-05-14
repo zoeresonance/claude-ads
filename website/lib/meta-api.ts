@@ -482,8 +482,10 @@ export async function fetchOrganicData(
         "page_post_engagements",
       ].map(fetchFbMetric)).then((results) => results.flat()),
 
-      // Recent FB posts — stop paginating once posts go before sinceTs
-      // (paging.next goes backward in time past the since boundary)
+      // Fetch most-recent FB posts then filter client-side.
+      // since/until on /posts returns unreliable results; fetching without
+      // them gives the latest posts in reverse-chron order which we then
+      // trim to the selected window.
       fetchPostsInWindow(
         `/${facebookPageId}/posts`,
         {
@@ -496,8 +498,6 @@ export async function fetchOrganicData(
             "attachments{media_type,type}",
             "insights.metric(post_impressions,post_reach,post_engaged_users,post_clicks,post_reactions_by_type_total)",
           ].join(","),
-          since: sinceTs,
-          until: untilTs,
           limit: "100",
           access_token: pageToken,
         },
