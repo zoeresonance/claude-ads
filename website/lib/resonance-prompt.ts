@@ -77,7 +77,8 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
 
 Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
 Top/bottom performers: 3 each max. Focus only on ads.
-Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual headline rewrites, actual audience parameters, actual creative directions. Not vague advice.`;
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual headline rewrites, actual audience parameters, actual creative directions. Not vague advice.
+CRITICAL: In topPerformers, bottomPerformers, recommendations, and personaFit, ONLY reference specific ads that appear in the data provided above. Do not cite, invent, or recall any ad, campaign, or creative that is not explicitly listed in the input data for this date window.`;
 
 // ─── Organic Resonance ────────────────────────────────────────────────────────
 
@@ -159,7 +160,8 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
 
 Grades: A=85+, B=70-84, C=55-69, D=40-54, F=<40
 Top/bottom performers: 3 each max. Focus only on organic posts (no ads).
-Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.`;
+Recommendations: 5-8, sorted by impact (HIGH first). Be specific — actual caption rewrites, actual content formats, actual posting strategies. Not vague advice.
+CRITICAL: In topPerformers, bottomPerformers, recommendations, and personaFit, ONLY reference specific posts that appear in the data provided above. Do not cite, invent, or recall any post, story, or reel that is not explicitly listed in the input data for this date window.`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

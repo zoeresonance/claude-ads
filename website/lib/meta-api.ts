@@ -516,10 +516,18 @@ export async function fetchOrganicData(
     return ts >= sinceMs && ts <= untilMs;
   });
 
+  // Filter FB posts by date range (since/until on /posts acts as cursor, not a date filter)
+  const fbSinceMs = new Date(range.since).getTime();
+  const fbUntilMs = new Date(range.until).getTime() + 86400000;
+  const pagePosts = allPagePosts.filter((p) => {
+    const ts = new Date(p.created_time).getTime();
+    return ts >= fbSinceMs && ts <= fbUntilMs;
+  });
+
   return {
     page,
     pageInsights,
-    pagePosts: allPagePosts,
+    pagePosts,
     igInsights,
     igAudienceDemographics,
     igMedia,
