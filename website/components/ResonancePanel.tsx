@@ -271,6 +271,13 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
       {/* Active panel */}
       {active === "ads" ? (
         <>
+          <ScorePanel
+            data={result.ads}
+            dimensionLabels={ADS_DIMENSION_LABELS}
+            icon="📣"
+            label="Ads Resonance"
+            accentColor="border-blue-200"
+          />
           {performance && (
             <PerformanceChart
               title="Ad Performance"
@@ -283,16 +290,16 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
               ]}
             />
           )}
-          <ScorePanel
-            data={result.ads}
-            dimensionLabels={ADS_DIMENSION_LABELS}
-            icon="📣"
-            label="Ads Resonance"
-            accentColor="border-blue-200"
-          />
         </>
       ) : (
         <>
+          <ScorePanel
+            data={result.organic}
+            dimensionLabels={ORGANIC_DIMENSION_LABELS}
+            icon="🌱"
+            label="Organic Resonance — Facebook & Instagram"
+            accentColor="border-green-200"
+          />
           {performance ? (
             <div className="space-y-4">
               <PerformanceChart
@@ -325,13 +332,6 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
               Performance charts loading…
             </div>
           )}
-          <ScorePanel
-            data={result.organic}
-            dimensionLabels={ORGANIC_DIMENSION_LABELS}
-            icon="🌱"
-            label="Organic Resonance — Facebook & Instagram"
-            accentColor="border-green-200"
-          />
           <p className="text-xs text-slate-400 text-center px-4">
             Instagram audience demographics (age, gender, location) reflect the lifetime follower base,
             not the selected date range — Meta&apos;s API does not support custom ranges for that
