@@ -15,7 +15,9 @@ interface Props {
 type Preset = "7d" | "14d" | "30d" | "90d" | "custom";
 
 function fmtDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  // Use local date parts so the selected window matches what the user sees on
+  // their calendar, not the UTC date (which can be a day off near midnight).
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function presetToRange(preset: Exclude<Preset, "custom">): DateRange {

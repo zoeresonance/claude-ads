@@ -7,10 +7,13 @@ function previousPeriod(dateRange?: DateRange): DateRange {
   const since = new Date(dateRange?.since ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
   const until = new Date(dateRange?.until ?? new Date().toISOString().slice(0, 10));
   const days = Math.round((until.getTime() - since.getTime()) / 86400000);
+  // Use UTC date methods — these Date objects represent UTC midnight (parsed
+  // from YYYY-MM-DD strings), so local-time getDate/setDate would shift the
+  // window by the server's UTC offset on non-UTC hosts.
   const prevUntil = new Date(since);
-  prevUntil.setDate(prevUntil.getDate() - 1);
+  prevUntil.setUTCDate(prevUntil.getUTCDate() - 1);
   const prevSince = new Date(prevUntil);
-  prevSince.setDate(prevSince.getDate() - days);
+  prevSince.setUTCDate(prevSince.getUTCDate() - days);
   return {
     since: prevSince.toISOString().slice(0, 10),
     until: prevUntil.toISOString().slice(0, 10),
