@@ -19,6 +19,17 @@ function previousPeriod(dateRange?: DateRange): DateRange {
     until: prevUntil.toISOString().slice(0, 10),
   };
 }
+
+function yoyPeriod(dateRange?: DateRange): DateRange {
+  const since = new Date(dateRange?.since ?? new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10));
+  const until = new Date(dateRange?.until ?? new Date().toISOString().slice(0, 10));
+  since.setUTCFullYear(since.getUTCFullYear() - 1);
+  until.setUTCFullYear(until.getUTCFullYear() - 1);
+  return {
+    since: since.toISOString().slice(0, 10),
+    until: until.toISOString().slice(0, 10),
+  };
+}
 import {
   ADS_RESONANCE_SYSTEM_PROMPT,
   ORGANIC_RESONANCE_SYSTEM_PROMPT,
@@ -93,9 +104,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch ad data + organic data + previous period comparisons in parallel
+    // Fetch ad data + organic data + previous period + YoY comparisons in parallel
     const prevRange = previousPeriod(dateRange as DateRange | undefined);
-    const [adData, organic, previousInsights, previousOrganic] = await Promise.all([
+    const yoyRange = yoyPeriod(dateRange as DateRange | undefined);
+    const [adData, organic, previousInsights, previousOrganic, yoyOrganic] = await Promise.all([
       fetchMetaData(token, accountId, dateRange).catch((err) => {
         throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
@@ -104,12 +116,13 @@ export async function POST(req: NextRequest) {
       }),
       fetchInsightsForPeriod(token, accountId, prevRange).catch(() => null),
       fetchOrganicInsightsForPeriod(token, client.facebookPageId, client.instagramAccountId, prevRange).catch(() => null),
+      fetchOrganicInsightsForPeriod(token, client.facebookPageId, client.instagramAccountId, yoyRange).catch(() => null),
     ]);
 
     // Run both resonance analyses in parallel
     const [adsRaw, organicRaw] = await Promise.all([
       generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData, previousInsights ?? undefined)),
-      generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic, previousOrganic ?? undefined)),
+      generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic, previousOrganic ?? undefined, yoyOrganic ?? undefined)),
     ]);
 
     const adsResult: ResonanceScoreResult = JSON.parse(stripMarkdown(adsRaw));

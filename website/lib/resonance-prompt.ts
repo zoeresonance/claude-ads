@@ -96,13 +96,15 @@ Your job is to analyze whether the organic content is resonating with the descri
 - PLATFORM CONSISTENCY: Is the brand showing up consistently and effectively across both Facebook and Instagram?
 
 CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
-Two momentum signals are provided for each organic metric. Weight them as follows:
+Three momentum signals are provided for each organic metric. Apply this priority order:
 
-1. PERIOD-OVER-PERIOD (PRIMARY — weight this more heavily): Current period total vs the previous equivalent period total. A 20%+ improvement should meaningfully boost the relevant dimension score (15–25 points) even if absolute numbers are modest. A decline should penalise it proportionally.
+1. YEAR-OVER-YEAR / YoY (HIGHEST PRIORITY): Current period vs the same window one year ago. This is the most reliable signal because it controls for seasonal patterns (holidays, annual events, school calendars). Weight YoY heavily — a 20%+ YoY improvement should meaningfully boost scores (15–25 points) even if absolute numbers are modest.
 
-2. WITHIN-PERIOD ACCELERATION (SECONDARY): First-half vs second-half of the current period. A 30%+ acceleration is supplementary evidence of building momentum. Weight it less than period-over-period, but use it to confirm or temper the primary signal.
+2. PERIOD-OVER-PERIOD (SECONDARY): Current period total vs the immediately preceding equivalent period. Useful for detecting recent momentum shifts, but treat it with caution when it may be inflated or deflated by holidays or one-off events in either window. If prior-period and YoY diverge significantly (one shows growth, the other decline), explicitly note the likely seasonal explanation and weight YoY more heavily.
 
-When both signals agree (e.g. period-over-period up AND accelerating within the period), that is strong evidence — score accordingly. When they conflict, let the period-over-period comparison dominate.
+3. WITHIN-PERIOD ACCELERATION (TERTIARY): First-half vs second-half of the current period. Useful as a confirmatory signal only. Weight it least.
+
+When all three point the same direction, that is strong evidence. When they conflict, YoY dominates.
 
 IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics respect the selected date range.
 
@@ -217,11 +219,24 @@ function sumInsight(insights: PageInsightValue[], name: string): number {
   return item.values.reduce((s, v) => s + (typeof v.value === "number" ? v.value : 0), 0);
 }
 
-function periodComparison(current: number, previous: number | null, label: string): string {
-  if (previous === null || previous === 0) return `${label}: ${current.toLocaleString()} total (no prior period data)`;
-  const pct = Math.round(((current - previous) / previous) * 100);
-  const dir = pct >= 0 ? "▲" : "▼";
-  return `${label}: ${current.toLocaleString()} total | ${dir}${Math.abs(pct)}% vs prior period (${previous.toLocaleString()})`;
+function organicMetricRow(
+  label: string,
+  current: number,
+  previous: number | null,
+  yoy: number | null
+): string {
+  const fmt = (n: number) => n.toLocaleString();
+  const pct = (curr: number, base: number) => {
+    const p = Math.round(((curr - base) / base) * 100);
+    return `${p >= 0 ? "▲" : "▼"}${Math.abs(p)}%`;
+  };
+  const prevPart = previous && previous > 0
+    ? `${pct(current, previous)} vs prior period (${fmt(previous)})`
+    : "no prior period data";
+  const yoyPart = yoy && yoy > 0
+    ? `${pct(current, yoy)} vs same period last year (${fmt(yoy)})`
+    : "no YoY data";
+  return `  ${label}: ${fmt(current)} total | ${prevPart} | ${yoyPart}`;
 }
 
 function summarizePost(post: PagePost, index: number): string {
@@ -350,7 +365,7 @@ export function buildAdsResonanceMessage(
   return sections.join("\n\n");
 }
 
-export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicData, previousOrganic?: OrganicPeriodInsights): string {
+export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicData, previousOrganic?: OrganicPeriodInsights, yoyOrganic?: OrganicPeriodInsights): string {
   const sections: string[] = [];
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
@@ -368,9 +383,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     fbSections.push(`Page Metrics (${windowSince} to ${windowUntil}):`);
     const fbReach = sumInsight(organic.pageInsights, "page_impressions_unique");
     const fbEngagements = sumInsight(organic.pageInsights, "page_post_engagements");
-    fbSections.push(`  ${periodComparison(fbReach, previousOrganic?.fbReach ?? null, "Reach (unique)")}`);
-    fbSections.push(`  ${periodComparison(fbEngagements, previousOrganic?.fbEngagements ?? null, "Post Engagements")}`);
-    fbSections.push("  Within-period acceleration (first half vs second half — secondary signal):");
+    fbSections.push(organicMetricRow("Reach (unique)", fbReach, previousOrganic?.fbReach ?? null, yoyOrganic?.fbReach ?? null));
+    fbSections.push(organicMetricRow("Post Engagements", fbEngagements, previousOrganic?.fbEngagements ?? null, yoyOrganic?.fbEngagements ?? null));
+    fbSections.push("  Within-period acceleration (first half vs second half — tertiary signal):");
     fbSections.push(`    Reach: ${periodTrend(organic.pageInsights, "page_impressions_unique")}`);
     fbSections.push(`    Engagements: ${periodTrend(organic.pageInsights, "page_post_engagements")}`);
   }
@@ -388,9 +403,9 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
     igSections.push("Instagram Metrics (last 30 days — Meta API hard limit for reach):");
     const igReach = sumInsight(organic.igInsights, "reach");
     const igFollowers = sumInsight(organic.igInsights, "follower_count");
-    igSections.push(`  ${periodComparison(igReach, previousOrganic?.igReach ?? null, "Reach")}`);
-    igSections.push(`  ${periodComparison(igFollowers, previousOrganic?.igFollowerGrowth ?? null, "New Followers")}`);
-    igSections.push("  Within-period acceleration (first half vs second half — secondary signal):");
+    igSections.push(organicMetricRow("Reach", igReach, previousOrganic?.igReach ?? null, yoyOrganic?.igReach ?? null));
+    igSections.push(organicMetricRow("New Followers", igFollowers, previousOrganic?.igFollowerGrowth ?? null, yoyOrganic?.igFollowerGrowth ?? null));
+    igSections.push("  Within-period acceleration (first half vs second half — tertiary signal):");
     igSections.push(`    Reach: ${periodTrend(organic.igInsights, "reach")}`);
     igSections.push(`    New followers: ${periodTrend(organic.igInsights, "follower_count")}`);
   }
