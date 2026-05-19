@@ -570,3 +570,70 @@ export async function fetchOrganicData(
     fetchedAt: new Date().toISOString(),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Previous-period organic totals (for period-over-period momentum comparison)
+// ---------------------------------------------------------------------------
+
+export interface OrganicPeriodInsights {
+  fbReach: number | null;
+  fbEngagements: number | null;
+  igReach: number | null;
+  igFollowerGrowth: number | null;
+}
+
+export async function fetchOrganicInsightsForPeriod(
+  token: string,
+  facebookPageId: string,
+  instagramAccountId: string,
+  dateRange: DateRange
+): Promise<OrganicPeriodInsights> {
+  const t = token.trim();
+  const sinceTs = String(Math.floor(new Date(dateRange.since).getTime() / 1000));
+  const untilTs = String(Math.floor(new Date(dateRange.until).getTime() / 1000));
+
+  const pageToken = await gql<{ access_token?: string; id: string }>(
+    `/${facebookPageId}`,
+    { fields: "access_token", access_token: t }
+  ).then((r) => r.access_token ?? t).catch(() => t);
+
+  // IG reach has a hard 30-day window limit in the Meta API
+  const igSinceTs = String(Math.max(
+    Number(sinceTs),
+    Math.floor(new Date(dateRange.until).getTime() / 1000) - 30 * 86400
+  ));
+
+  const sum = (data: PageInsightValue[], name: string): number | null => {
+    const item = data.find((i) => i.name === name);
+    if (!item?.values?.length) return null;
+    const total = item.values.reduce((s, v) => s + (typeof v.value === "number" ? v.value : 0), 0);
+    return total > 0 ? total : null;
+  };
+
+  const [fbInsights, igInsights] = await Promise.all([
+    Promise.all(
+      ["page_impressions_unique", "page_post_engagements"].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${facebookPageId}/insights`,
+          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )
+    ).then((r) => r.flat()),
+
+    Promise.all(
+      ["reach", "follower_count"].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${instagramAccountId}/insights`,
+          { metric, period: "day", since: igSinceTs, until: untilTs, access_token: t }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )
+    ).then((r) => r.flat()),
+  ]);
+
+  return {
+    fbReach:          sum(fbInsights, "page_impressions_unique"),
+    fbEngagements:    sum(fbInsights, "page_post_engagements"),
+    igReach:          sum(igInsights, "reach"),
+    igFollowerGrowth: sum(igInsights, "follower_count"),
+  };
+}

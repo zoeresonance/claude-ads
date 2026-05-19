@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMetaData, fetchOrganicData, fetchInsightsForPeriod } from "@/lib/meta-api";
+import { fetchMetaData, fetchOrganicData, fetchInsightsForPeriod, fetchOrganicInsightsForPeriod } from "@/lib/meta-api";
 import type { DateRange } from "@/lib/meta-api";
 
 function previousPeriod(dateRange?: DateRange): DateRange {
@@ -90,9 +90,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch ad data + organic data + previous period comparison in parallel
+    // Fetch ad data + organic data + previous period comparisons in parallel
     const prevRange = previousPeriod(dateRange as DateRange | undefined);
-    const [adData, organic, previousInsights] = await Promise.all([
+    const [adData, organic, previousInsights, previousOrganic] = await Promise.all([
       fetchMetaData(token, accountId, dateRange).catch((err) => {
         throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
@@ -100,12 +100,13 @@ export async function POST(req: NextRequest) {
         throw new Error(`Organic data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
       fetchInsightsForPeriod(token, accountId, prevRange).catch(() => null),
+      fetchOrganicInsightsForPeriod(token, client.facebookPageId, client.instagramAccountId, prevRange).catch(() => null),
     ]);
 
     // Run both resonance analyses in parallel
     const [adsRaw, organicRaw] = await Promise.all([
       generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData, previousInsights ?? undefined)),
-      generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic)),
+      generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic, previousOrganic ?? undefined)),
     ]);
 
     const adsResult: ResonanceScoreResult = JSON.parse(stripMarkdown(adsRaw));

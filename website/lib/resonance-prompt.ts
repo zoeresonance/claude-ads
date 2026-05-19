@@ -1,4 +1,4 @@
-import type { MetaFullData, MetaAd, MetaInsights, OrganicData, PagePost, IgMedia, PageInsightValue } from "./meta-api";
+import type { MetaFullData, MetaAd, MetaInsights, OrganicData, OrganicPeriodInsights, PagePost, IgMedia, PageInsightValue } from "./meta-api";
 
 // ─── Ads Resonance ────────────────────────────────────────────────────────────
 
@@ -96,7 +96,13 @@ Your job is to analyze whether the organic content is resonating with the descri
 - PLATFORM CONSISTENCY: Is the brand showing up consistently and effectively across both Facebook and Instagram?
 
 CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
-Weight positive growth trajectory heavily. If reach, engagement, or followers are trending up significantly within the period (first half vs second half), treat that as strong evidence of growing resonance. A 30%+ improvement in the second half of the period should meaningfully boost the relevant dimension score, even if absolute numbers are modest. Growth is evidence that the content is landing — the audience is responding more over time. Penalise flat or declining trends, reward acceleration.
+Two momentum signals are provided for each organic metric. Weight them as follows:
+
+1. PERIOD-OVER-PERIOD (PRIMARY — weight this more heavily): Current period total vs the previous equivalent period total. A 20%+ improvement should meaningfully boost the relevant dimension score (15–25 points) even if absolute numbers are modest. A decline should penalise it proportionally.
+
+2. WITHIN-PERIOD ACCELERATION (SECONDARY): First-half vs second-half of the current period. A 30%+ acceleration is supplementary evidence of building momentum. Weight it less than period-over-period, but use it to confirm or temper the primary signal.
+
+When both signals agree (e.g. period-over-period up AND accelerating within the period), that is strong evidence — score accordingly. When they conflict, let the period-over-period comparison dominate.
 
 IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics respect the selected date range.
 
@@ -203,6 +209,19 @@ function getInsightValue(insights: PageInsightValue[], name: string): string {
       .join(", ");
   }
   return "N/A";
+}
+
+function sumInsight(insights: PageInsightValue[], name: string): number {
+  const item = insights.find((i) => i.name === name);
+  if (!item) return 0;
+  return item.values.reduce((s, v) => s + (typeof v.value === "number" ? v.value : 0), 0);
+}
+
+function periodComparison(current: number, previous: number | null, label: string): string {
+  if (previous === null || previous === 0) return `${label}: ${current.toLocaleString()} total (no prior period data)`;
+  const pct = Math.round(((current - previous) / previous) * 100);
+  const dir = pct >= 0 ? "▲" : "▼";
+  return `${label}: ${current.toLocaleString()} total | ${dir}${Math.abs(pct)}% vs prior period (${previous.toLocaleString()})`;
 }
 
 function summarizePost(post: PagePost, index: number): string {
@@ -331,7 +350,7 @@ export function buildAdsResonanceMessage(
   return sections.join("\n\n");
 }
 
-export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicData): string {
+export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicData, previousOrganic?: OrganicPeriodInsights): string {
   const sections: string[] = [];
 
   sections.push(`## PERSONA & AUDIENCE AUDIT DOCUMENT\n\n${auditDoc}`);
@@ -347,11 +366,13 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
   }
   if (organic.pageInsights.length) {
     fbSections.push(`Page Metrics (${windowSince} to ${windowUntil}):`);
-    fbSections.push(`  Reach (unique): ${getInsightValue(organic.pageInsights, "page_impressions_unique")}`);
-    fbSections.push(`  Post Engagements: ${getInsightValue(organic.pageInsights, "page_post_engagements")}`);
-    fbSections.push("Trends (first half vs second half of period):");
-    fbSections.push(`  Reach trend: ${periodTrend(organic.pageInsights, "page_impressions_unique")}`);
-    fbSections.push(`  Engagements trend: ${periodTrend(organic.pageInsights, "page_post_engagements")}`);
+    const fbReach = sumInsight(organic.pageInsights, "page_impressions_unique");
+    const fbEngagements = sumInsight(organic.pageInsights, "page_post_engagements");
+    fbSections.push(`  ${periodComparison(fbReach, previousOrganic?.fbReach ?? null, "Reach (unique)")}`);
+    fbSections.push(`  ${periodComparison(fbEngagements, previousOrganic?.fbEngagements ?? null, "Post Engagements")}`);
+    fbSections.push("  Within-period acceleration (first half vs second half — secondary signal):");
+    fbSections.push(`    Reach: ${periodTrend(organic.pageInsights, "page_impressions_unique")}`);
+    fbSections.push(`    Engagements: ${periodTrend(organic.pageInsights, "page_post_engagements")}`);
   }
   if (organic.pagePosts.length) {
     fbSections.push(`\nPosts published ${windowSince} to ${windowUntil} (${organic.pagePosts.length} total):`);
@@ -365,11 +386,13 @@ export function buildOrganicResonanceMessage(auditDoc: string, organic: OrganicD
   const igSections: string[] = [];
   if (organic.igInsights.length) {
     igSections.push("Instagram Metrics (last 30 days — Meta API hard limit for reach):");
-    igSections.push(`  Reach: ${getInsightValue(organic.igInsights, "reach")}`);
-    igSections.push(`  New Followers (daily): ${getInsightValue(organic.igInsights, "follower_count")}`);
-    igSections.push("Trends (first half vs second half of 30-day window):");
-    igSections.push(`  Reach trend: ${periodTrend(organic.igInsights, "reach")}`);
-    igSections.push(`  New followers trend: ${periodTrend(organic.igInsights, "follower_count")}`);
+    const igReach = sumInsight(organic.igInsights, "reach");
+    const igFollowers = sumInsight(organic.igInsights, "follower_count");
+    igSections.push(`  ${periodComparison(igReach, previousOrganic?.igReach ?? null, "Reach")}`);
+    igSections.push(`  ${periodComparison(igFollowers, previousOrganic?.igFollowerGrowth ?? null, "New Followers")}`);
+    igSections.push("  Within-period acceleration (first half vs second half — secondary signal):");
+    igSections.push(`    Reach: ${periodTrend(organic.igInsights, "reach")}`);
+    igSections.push(`    New followers: ${periodTrend(organic.igInsights, "follower_count")}`);
   }
   if (organic.igAudienceDemographics.length) {
     igSections.push("\nAudience Demographics (LIFETIME — represents all-time follower base, NOT this date range):");
