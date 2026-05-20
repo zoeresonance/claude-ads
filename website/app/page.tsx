@@ -356,9 +356,20 @@ export default function Home() {
                   </div>
                 )}
                 {resonanceError && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                    <p className="text-red-700 font-semibold text-sm">Resonance analysis failed</p>
-                    <p className="text-red-600 text-sm mt-1">{resonanceError}</p>
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-red-700 font-semibold text-sm">Resonance analysis failed</p>
+                      <p className="text-red-600 text-sm mt-1">{resonanceError}</p>
+                    </div>
+                    {account && (
+                      <button
+                        onClick={() => fetchResonance(account.id, account.dateRange!)}
+                        disabled={resonanceLoading}
+                        className="shrink-0 text-sm font-medium text-red-700 border border-red-300 bg-white rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      >
+                        {resonanceLoading ? "Retrying…" : "Retry"}
+                      </button>
+                    )}
                   </div>
                 )}
                 {resonanceResult && (
