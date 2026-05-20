@@ -114,6 +114,11 @@ export interface PerformanceData {
       reach: DailyMetric[];
       followerCount: DailyMetric[];
     };
+    combined: {
+      views: DailyMetric[];      // FB total impressions + IG reach (IG daily impressions unavailable in Meta API v21)
+      viewers: DailyMetric[];    // FB unique reach + IG unique reach
+      engagement: DailyMetric[]; // FB post engagements + IG likes+comments aggregated from posts
+    };
   };
 }
 

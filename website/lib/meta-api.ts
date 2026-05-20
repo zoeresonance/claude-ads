@@ -481,6 +481,7 @@ export async function fetchOrganicData(
       Promise.all([
         "page_impressions_unique",
         "page_post_engagements",
+        "page_impressions",
       ].map(fetchFbMetric)).then((results) => results.flat()),
 
       // Fetch most-recent FB posts then filter client-side.

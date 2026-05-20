@@ -15,6 +15,16 @@ function extractDailySeries(insights: PageInsightValue[], metricName: string): D
     }));
 }
 
+function mergeSeries(...series: DailyMetric[][]): DailyMetric[] {
+  const map = new Map<string, number>();
+  for (const s of series)
+    for (const { date, value } of s)
+      map.set(date, (map.get(date) ?? 0) + value);
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, value]) => ({ date, value }));
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { accountId, dateRange } = await req.json();
@@ -41,18 +51,36 @@ export async function POST(req: NextRequest) {
         cpm:         dailyAds.map((d) => ({ date: d.date_start, value: parseFloat(d.cpm ?? "0") })),
         frequency:   dailyAds.map((d) => ({ date: d.date_start, value: parseFloat(d.frequency ?? "0") })),
       },
-      organic: organic
-        ? {
-            fb: {
-              reach:      extractDailySeries(organic.pageInsights, "page_impressions_unique"),
-              engagements:extractDailySeries(organic.pageInsights, "page_post_engagements"),
-            },
-            ig: {
-              reach:        extractDailySeries(organic.igInsights, "reach"),
-              followerCount:extractDailySeries(organic.igInsights, "follower_count"),
-            },
-          }
-        : { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [] } },
+      organic: (() => {
+        const empty = { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [] }, combined: { views: [], viewers: [], engagement: [] } };
+        if (!organic) return empty;
+
+        const fbImpressions = extractDailySeries(organic.pageInsights, "page_impressions");
+        const fbReach       = extractDailySeries(organic.pageInsights, "page_impressions_unique");
+        const fbEngagements = extractDailySeries(organic.pageInsights, "page_post_engagements");
+        const igReach       = extractDailySeries(organic.igInsights, "reach");
+        const igFollowers   = extractDailySeries(organic.igInsights, "follower_count");
+
+        // Aggregate IG likes+comments by day from individual posts
+        const igEngagementMap = new Map<string, number>();
+        for (const post of organic.igMedia) {
+          const date = post.timestamp.slice(0, 10);
+          igEngagementMap.set(date, (igEngagementMap.get(date) ?? 0) + (post.like_count ?? 0) + (post.comments_count ?? 0));
+        }
+        const igEngagement = Array.from(igEngagementMap.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([date, value]) => ({ date, value }));
+
+        return {
+          fb: { reach: fbReach, engagements: fbEngagements },
+          ig: { reach: igReach, followerCount: igFollowers },
+          combined: {
+            views:      mergeSeries(fbImpressions, igReach),      // FB total impressions + IG reach (best available proxy)
+            viewers:    mergeSeries(fbReach, igReach),            // FB + IG unique reach
+            engagement: mergeSeries(fbEngagements, igEngagement), // FB post engagements + IG likes+comments
+          },
+        };
+      })(),
     };
 
     return NextResponse.json({ performance });

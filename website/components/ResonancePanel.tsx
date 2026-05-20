@@ -279,16 +279,26 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             accentColor="border-blue-200"
           />
           {performance && (
-            <PerformanceChart
-              title="Ad Performance"
-              metrics={[
-                { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                    data: performance.ads.spend,       format: "currency", color: "#2563eb" },
-                { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",  data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
-                { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                     data: performance.ads.cpm,         format: "currency", color: "#d97706" },
-                { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                      data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
-                { key: "frequency",   label: "Frequency",   description: "Average number of times each person saw your ads.",               data: performance.ads.frequency,   format: "number",   color: "#db2777" },
-              ]}
-            />
+            <div className="space-y-4">
+              <PerformanceChart
+                title="Ad Performance"
+                metrics={[
+                  { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                    data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+                  { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",  data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
+                  { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                     data: performance.ads.cpm,         format: "currency", color: "#d97706" },
+                  { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                      data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
+                  { key: "frequency",   label: "Frequency",   description: "Average number of times each person saw your ads.",               data: performance.ads.frequency,   format: "number",   color: "#db2777" },
+                ]}
+              />
+              <PerformanceChart
+                title="Combined Organic — Facebook + Instagram"
+                metrics={[
+                  { key: "views",      label: "Views",      description: "Total content views across both platforms. Facebook: total impressions (including repeat views). Instagram: unique reach (daily impressions unavailable from Meta API).", data: performance.organic.combined.views,      format: "number", color: "#6366f1" },
+                  { key: "viewers",    label: "Viewers",    description: "Unique people who saw your content on Facebook or Instagram each day.",                                                                                                   data: performance.organic.combined.viewers,    format: "number", color: "#0ea5e9" },
+                  { key: "engagement", label: "Engagement", description: "Total interactions across both platforms. Facebook: reactions, comments, shares, and clicks. Instagram: likes and comments on individual posts.",                         data: performance.organic.combined.engagement, format: "number", color: "#10b981" },
+                ]}
+              />
+            </div>
           )}
         </>
       ) : (
@@ -303,11 +313,11 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
           {performance ? (
             <div className="space-y-4">
               <PerformanceChart
-                title="Organic Reach & Engagement"
+                title="Combined Organic — Facebook + Instagram"
                 metrics={[
-                  { key: "fb_reach",       label: "FB Reach",       description: "Unique people who saw your Facebook page content (last 90 days).",  data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
-                  { key: "fb_engagements", label: "FB Engagements", description: "Total reactions, comments, shares, and clicks on Facebook posts.",   data: performance.organic.fb.engagements, format: "number", color: "#16a34a" },
-                  { key: "ig_reach",       label: "IG Reach",       description: "Unique accounts that saw your Instagram posts or stories (last 30 days, API limit).", data: performance.organic.ig.reach, format: "number", color: "#e1306c" },
+                  { key: "views",      label: "Views",      description: "Total content views across both platforms. Facebook: total impressions (including repeat views). Instagram: unique reach (daily impressions unavailable from Meta API).", data: performance.organic.combined.views,      format: "number", color: "#6366f1" },
+                  { key: "viewers",    label: "Viewers",    description: "Unique people who saw your content on Facebook or Instagram each day.",                                                                                                   data: performance.organic.combined.viewers,    format: "number", color: "#0ea5e9" },
+                  { key: "engagement", label: "Engagement", description: "Total interactions across both platforms. Facebook: reactions, comments, shares, and clicks. Instagram: likes and comments on individual posts.",                         data: performance.organic.combined.engagement, format: "number", color: "#10b981" },
                 ]}
               />
               <div className="grid sm:grid-cols-2 gap-4">
