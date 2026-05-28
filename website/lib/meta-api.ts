@@ -2,7 +2,7 @@ const BASE = "https://graph.facebook.com/v21.0"; // Meta Marketing API
 
 async function gql<T>(path: string, params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${BASE}${path}?${qs}`);
+  const res = await fetch(`${BASE}${path}?${qs}`, { cache: "no-store" });
   const json = await res.json();
   if (json.error) throw new Error(`Meta API: ${json.error.message} (code ${json.error.code})`);
   return json as T;
@@ -19,7 +19,7 @@ async function paginate<T>(
 
   while (queue.length > 0 && results.length < 500) {
     const nextUrl = queue.shift() as string;
-    const r = await fetch(nextUrl);
+    const r = await fetch(nextUrl, { cache: "no-store" });
     const json = await r.json();
     if (json.error) throw new Error(`Meta API: ${json.error.message}`);
     results.push(...(json.data ?? []));
@@ -423,7 +423,7 @@ async function fetchPostsInWindow(
   let nextUrl: string | null = `${BASE}${path}?${new URLSearchParams(params).toString()}`;
 
   while (nextUrl && results.length < 500) {
-    const res = await fetch(nextUrl);
+    const res = await fetch(nextUrl, { cache: "no-store" });
     const json = await res.json() as { data?: PagePost[]; error?: { message: string }; paging?: { next?: string } };
     if (json.error) throw new Error(`Meta API: ${json.error.message}`);
     const page: PagePost[] = json.data ?? [];
