@@ -1,8 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation, PerformanceData } from "@/lib/types";
 import PerformanceChart from "@/components/PerformanceChart";
+
+function printSection(ref: React.RefObject<HTMLDivElement | null>) {
+  const el = ref.current;
+  if (!el) return;
+  el.classList.add("print-region");
+  document.body.classList.add("printing");
+  window.addEventListener("afterprint", () => {
+    el.classList.remove("print-region");
+    document.body.classList.remove("printing");
+  }, { once: true });
+  window.print();
+}
 
 interface Props {
   result: ResonanceResult;
@@ -224,9 +236,25 @@ function ScorePanel({
 
 export default function ResonancePanel({ result, clientName, performance }: Props) {
   const [active, setActive] = useState<"ads" | "organic">("ads");
+  const printRef = useRef<HTMLDivElement>(null);
 
   return (
     <div className="space-y-6">
+      {/* PDF button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => printSection(printRef)}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:text-blue-700 transition-colors shadow-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />
+          </svg>
+          Download PDF
+        </button>
+      </div>
+
+      <div ref={printRef} className="space-y-6">
+
       {/* Toggle header */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
@@ -349,6 +377,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
           </p>
         </>
       )}
+      </div>{/* end print-region wrapper */}
     </div>
   );
 }

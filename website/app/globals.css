@@ -20,3 +20,15 @@
     transition: stroke-dashoffset 1s ease-in-out;
   }
 }
+
+@media print {
+  body.printing * { visibility: hidden; }
+  body.printing .print-region,
+  body.printing .print-region * { visibility: visible; }
+  body.printing .print-region {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

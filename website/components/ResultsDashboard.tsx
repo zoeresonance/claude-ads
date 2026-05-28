@@ -1,7 +1,20 @@
 "use client";
 
+import { useRef } from "react";
 import type { AnalysisResult, AuditCheck, QuickWin, PerformanceData } from "@/lib/types";
 import PerformanceChart from "@/components/PerformanceChart";
+
+function printSection(ref: React.RefObject<HTMLDivElement | null>) {
+  const el = ref.current;
+  if (!el) return;
+  el.classList.add("print-region");
+  document.body.classList.add("printing");
+  window.addEventListener("afterprint", () => {
+    el.classList.remove("print-region");
+    document.body.classList.remove("printing");
+  }, { once: true });
+  window.print();
+}
 
 const CIRCUMFERENCE = 2 * Math.PI * 45; // r=45
 
@@ -194,6 +207,7 @@ interface Props {
 }
 
 export default function ResultsDashboard({ result, onReset, performance }: Props) {
+  const printRef = useRef<HTMLDivElement>(null);
   const cats = result.categories;
   const fails = result.checks.filter((c) => c.result === "FAIL");
   const warnings = result.checks.filter((c) => c.result === "WARNING");
@@ -201,6 +215,21 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
 
   return (
     <div className="space-y-8">
+      {/* PDF button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => printSection(printRef)}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:text-blue-700 transition-colors shadow-sm"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />
+          </svg>
+          Download PDF
+        </button>
+      </div>
+
+      <div ref={printRef} className="space-y-8">
+
       {/* Summary banner */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
         <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
@@ -403,6 +432,8 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
           </table>
         </div>
       </div>
+
+      </div>{/* end print-region wrapper */}
 
       {/* Reset button */}
       <div className="flex justify-center pb-8">
