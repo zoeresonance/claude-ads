@@ -92,8 +92,7 @@ You will be given:
 Your job is to analyze whether the organic content is resonating with the described personas, based on:
 - AUDIENCE RECEPTION: What does the engagement data reveal about who is actually responding, and does that match the persona?
 - CONTENT PERFORMANCE: Which content types (video, photo, carousel, reel) and themes are performing best vs. worst, and why?
-- MESSAGING ALIGNMENT: Does the caption language, tone, and storytelling match what the persona responds to?
-- PLATFORM CONSISTENCY: Is the brand showing up consistently and effectively across both Facebook and Instagram?
+- MESSAGING ALIGNMENT: Does the caption language, tone, and storytelling carry the brand's overall voice and values as described in the persona document? Evaluate the gestalt — is the brand's personality, warmth, and community feel coming through? Brand guidelines that discourage a certain register (e.g. "avoid overly churchy language") mean the overall tone should not feel preachy or exclusionary — they do NOT ban specific words. A post that naturally uses words like "prayer," "worship," or "faith" while communicating welcome and authenticity scores well here. Only flag messaging as misaligned when the overall tone or message is clearly off-brand, not because individual words touch on sensitive topics.
 
 CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
 Three momentum signals are provided for each organic metric. Apply this priority order:
@@ -125,11 +124,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     },
     "messagingAlignment": {
       "score": <0-100>,
-      "finding": <string: how well the actual captions and storytelling match the persona's resonant themes vs. off-putting themes>
-    },
-    "platformConsistency": {
-      "score": <0-100>,
-      "finding": <string: how consistently and effectively the brand shows up across Facebook and Instagram organic>
+      "finding": <string: whether the overall brand voice, warmth, and values come through in the captions — note any posts where the overall tone feels off-brand, not just individual word choices>
     }
   },
   "topPerformers": [

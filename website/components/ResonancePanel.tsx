@@ -55,7 +55,6 @@ const ORGANIC_DIMENSION_LABELS: Record<string, string> = {
   audienceReception: "Audience Reception",
   contentPerformance: "Content Performance",
   messagingAlignment: "Messaging Alignment",
-  platformConsistency: "Platform Consistency",
 };
 
 function ScoreRing({ score, label }: { score: number; label: string }) {
