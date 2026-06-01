@@ -92,7 +92,7 @@ You will be given:
 Your job is to analyze whether the organic content is resonating with the described personas, based on:
 - AUDIENCE RECEPTION: What does the engagement data reveal about who is actually responding, and does that match the persona?
 - CONTENT PERFORMANCE: Which content types (video, photo, carousel, reel) and themes are performing best vs. worst, and why?
-- MESSAGING ALIGNMENT: Does the caption language, tone, and storytelling carry the brand's overall voice and values as described in the persona document? Evaluate the gestalt — is the brand's personality, warmth, and community feel coming through? Brand guidelines that discourage a certain register (e.g. "avoid overly churchy language") mean the overall tone should not feel preachy or exclusionary — they do NOT ban specific words. A post that naturally uses words like "prayer," "worship," or "faith" while communicating welcome and authenticity scores well here. Only flag messaging as misaligned when the overall tone or message is clearly off-brand, not because individual words touch on sensitive topics.
+- MESSAGING ALIGNMENT: Does the body of content reflect the brand's overall voice, values, and personality as described in the persona document? Judge this holistically across all posts — look for whether the brand's character comes through consistently, not whether every individual post checks every guideline box. Brand guidelines describe a direction and a spirit; treat them as a compass, not a checklist. A post that touches on a topic the guidelines flag as something to handle carefully is not automatically a miss — what matters is whether the overall feeling of that post is consistent with where the brand is trying to go. Reserve low scores for content that is clearly and repeatedly off-brand in tone, values, or audience fit.
 
 CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
 Three momentum signals are provided for each organic metric. Apply this priority order:
@@ -124,7 +124,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     },
     "messagingAlignment": {
       "score": <0-100>,
-      "finding": <string: whether the overall brand voice, warmth, and values come through in the captions — note any posts where the overall tone feels off-brand, not just individual word choices>
+      "finding": <string: holistic assessment of whether the brand's voice and values come through across the body of content — note patterns, not isolated posts>
     }
   },
   "topPerformers": [
