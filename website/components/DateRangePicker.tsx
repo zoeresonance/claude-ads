@@ -59,8 +59,8 @@ export default function DateRangePicker({ value, onChange }: Props) {
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-semibold text-slate-700">Date Range</label>
-      <div className="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl w-fit">
+      <label className="block text-sm font-semibold text-slate-200">Date Range</label>
+      <div className="flex flex-wrap gap-1 bg-[#252525] p-1 rounded-xl w-fit">
         {([
           ["7d", "7 days"],
           ["14d", "14 days"],
@@ -74,8 +74,8 @@ export default function DateRangePicker({ value, onChange }: Props) {
             onClick={() => handlePreset(p)}
             className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
               preset === p
-                ? "bg-white text-slate-800 shadow-sm"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-[#1e1e1e] text-slate-100 shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
             {label}
@@ -90,7 +90,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
             value={value.since}
             max={value.until}
             onChange={(e) => onChange({ ...value, since: e.target.value })}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
+            className="text-sm border border-[#2d2d2d] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100"
           />
           <span className="text-xs text-slate-400">→</span>
           <input
@@ -99,7 +99,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
             min={value.since}
             max={fmtDate(new Date())}
             onChange={(e) => onChange({ ...value, until: e.target.value })}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
+            className="text-sm border border-[#2d2d2d] rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100"
           />
         </div>
       )}
@@ -107,7 +107,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
       <p className="text-xs text-slate-400">
         Analyzing {value.since} → {value.until} ({days} day{days === 1 ? "" : "s"})
       </p>
-      <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5">
+      <p className="text-xs text-yellow-300/80 bg-yellow-950/30 border border-yellow-800/50 rounded-lg px-2 py-1.5">
         Note: Instagram audience demographics (age, gender, location) are always{" "}
         <strong>lifetime</strong> — Meta&apos;s API doesn&apos;t allow custom date ranges for that
         metric. All other metrics respect the selected range.

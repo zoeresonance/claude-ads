@@ -152,7 +152,7 @@ export default function Home() {
   const hasResonance = resonanceResult !== null || resonanceLoading || resonanceError !== null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#111111]">
       {/* Header */}
       <header className="bg-brand-dark sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -175,17 +175,17 @@ export default function Home() {
         {/* Hero */}
         {!result && !loading && (
           <div className="text-center max-w-2xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 leading-tight">
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight">
               Diagnose Your Meta Ads
               <span className="text-brand-600"> in 60 Seconds</span>
             </h1>
-            <p className="text-slate-600 text-base leading-relaxed">
+            <p className="text-slate-300 text-base leading-relaxed">
               Connect your Meta account and get a live AI audit — ad health checks plus
               audience resonance scored against your target persona.
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-4">
               {["50-check audit", "Health score", "Resonance score", "Real account data", "Persona-matched recommendations"].map((f) => (
-                <span key={f} className="text-xs bg-brand-50 text-brand-700 font-medium px-3 py-1 rounded-full border border-brand-200">
+                <span key={f} className="text-xs bg-[#0d2020] text-brand-300 font-medium px-3 py-1 rounded-full border border-brand-600">
                   {f}
                 </span>
               ))}
@@ -195,12 +195,12 @@ export default function Home() {
 
         {/* Loading */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+          <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] p-12 text-center shadow-sm">
             <div className="flex justify-center mb-4">
               <div className="w-12 h-12 border-4 border-brand-300 border-t-transparent rounded-full animate-spin" />
             </div>
-            <h3 className="font-semibold text-slate-800 text-lg mb-1">{loadingMsg}</h3>
-            <p className="text-slate-500 text-sm">
+            <h3 className="font-semibold text-slate-100 text-lg mb-1">{loadingMsg}</h3>
+            <p className="text-slate-400 text-sm">
               {mode === "connect"
                 ? "Fetching campaigns, ad sets, creatives, pixels, audiences, and 30-day insights — then running the full audit."
                 : "Evaluating all 50 checks across Pixel/CAPI, creative, structure, and audience. This takes about 20 seconds."}
@@ -210,9 +210,9 @@ export default function Home() {
 
         {/* Error */}
         {error && !loading && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
-            <p className="text-red-800 font-semibold mb-1">Something went wrong</p>
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-950/40 border border-red-800 rounded-xl p-4 text-center">
+            <p className="text-red-300 font-semibold mb-1">Something went wrong</p>
+            <p className="text-red-400 text-sm">{error}</p>
             {error.toLowerCase().includes("oauthexception") || error.toLowerCase().includes("token") ? (
               <p className="text-red-500 text-xs mt-2">
                 Your access token may have expired. Generate a new one at{" "}
@@ -230,12 +230,12 @@ export default function Home() {
 
         {/* Input forms */}
         {!loading && !result && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="flex border-b border-slate-200">
+          <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm overflow-hidden">
+            <div className="flex border-b border-[#2d2d2d]">
               <button
                 onClick={() => setMode("connect")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "connect" ? "bg-white text-brand-600 border-b-2 border-brand-300" : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "connect" ? "bg-[#1e1e1e] text-brand-300 border-b-2 border-brand-300" : "text-slate-400 hover:text-slate-200 bg-[#252525]"
                 }`}
               >
                 📡 Connect Meta Account
@@ -243,7 +243,7 @@ export default function Home() {
               <button
                 onClick={() => setMode("manual")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "manual" ? "bg-white text-brand-600 border-b-2 border-brand-300" : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "manual" ? "bg-[#1e1e1e] text-brand-300 border-b-2 border-brand-300" : "text-slate-400 hover:text-slate-200 bg-[#252525]"
                 }`}
               >
                 ✏️ Enter Metrics Manually
@@ -313,11 +313,11 @@ export default function Home() {
         {result && !loading && (
           <div ref={resultsRef}>
             {hasResonance && (
-              <div className="flex gap-1 mb-4 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+              <div className="flex gap-1 mb-4 bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-1 w-fit">
                 <button
                   onClick={() => setActiveTab("health")}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                    activeTab === "health" ? "bg-brand-300 text-brand-dark" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "health" ? "bg-brand-300 text-brand-dark" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Health Score
@@ -325,7 +325,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveTab("resonance")}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
-                    activeTab === "resonance" ? "bg-brand-300 text-brand-dark" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "resonance" ? "bg-brand-300 text-brand-dark" : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   Resonance Score
@@ -346,25 +346,25 @@ export default function Home() {
             {activeTab === "resonance" && (
               <>
                 {resonanceLoading && (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                  <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] p-12 text-center shadow-sm">
                     <div className="flex justify-center mb-4">
                       <div className="w-10 h-10 border-4 border-brand-300 border-t-transparent rounded-full animate-spin" />
                     </div>
-                    <p className="text-slate-600 font-medium">Analyzing audience resonance…</p>
+                    <p className="text-slate-300 font-medium">Analyzing audience resonance…</p>
                     <p className="text-slate-400 text-sm mt-1">Fetching organic data and comparing against your persona doc</p>
                   </div>
                 )}
                 {resonanceError && (
-                  <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start justify-between gap-4">
+                  <div className="bg-red-950/40 border border-red-800 rounded-xl p-4 flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-red-700 font-semibold text-sm">Resonance analysis failed</p>
-                      <p className="text-red-600 text-sm mt-1">{resonanceError}</p>
+                      <p className="text-red-300 font-semibold text-sm">Resonance analysis failed</p>
+                      <p className="text-red-400 text-sm mt-1">{resonanceError}</p>
                     </div>
                     {account && (
                       <button
                         onClick={() => fetchResonance(account.id, account.dateRange!)}
                         disabled={resonanceLoading}
-                        className="shrink-0 text-sm font-medium text-red-700 border border-red-300 bg-white rounded-lg px-3 py-1.5 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                        className="shrink-0 text-sm font-medium text-red-300 border border-red-800 bg-red-950/40 rounded-lg px-3 py-1.5 hover:bg-red-950/60 disabled:opacity-50 transition-colors"
                       >
                         {resonanceLoading ? "Retrying…" : "Retry"}
                       </button>
@@ -385,7 +385,7 @@ export default function Home() {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 mt-16 py-8">
+      <footer className="border-t border-[#2d2d2d] mt-16 py-8">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs text-slate-400">
           <p>
             Built with{" "}

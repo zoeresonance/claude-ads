@@ -36,24 +36,24 @@ function scoreColor(score: number) {
 function resultBadge(result: string) {
   if (result === "PASS")
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-900/50 text-green-300">
         ✓ PASS
       </span>
     );
   if (result === "WARNING")
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-900/50 text-yellow-300">
         ⚠ WARN
       </span>
     );
   if (result === "FAIL")
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-900/50 text-red-300">
         ✗ FAIL
       </span>
     );
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#2a2a2a] text-slate-300">
       N/A
     </span>
   );
@@ -104,7 +104,7 @@ function HealthRing({ score, grade }: { score: number; grade: string }) {
           <span className="text-4xl font-bold" style={{ color }}>
             {score}
           </span>
-          <span className="text-sm text-slate-500">/ 100</span>
+          <span className="text-sm text-slate-400">/ 100</span>
         </div>
       </div>
       <div
@@ -134,7 +134,7 @@ function CategoryBar({
   return (
     <div>
       <div className="flex justify-between items-baseline mb-1">
-        <span className="text-sm font-medium text-slate-700">{label}</span>
+        <span className="text-sm font-medium text-slate-200">{label}</span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">
             {checksPass}/{checksTotal} checks
@@ -145,7 +145,7 @@ function CategoryBar({
           <span className="text-xs text-slate-400">({weight}%)</span>
         </div>
       </div>
-      <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-[#2a2a2a] rounded-full overflow-hidden">
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${score}%`, backgroundColor: color }}
@@ -157,18 +157,18 @@ function CategoryBar({
 
 function QuickWinCard({ win }: { win: QuickWin }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+    <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-2">
-        <span className="text-xs font-mono text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+        <span className="text-xs font-mono text-slate-400 bg-[#2a2a2a] px-1.5 py-0.5 rounded">
           {win.checkId}
         </span>
         {impactBadge(win.impact)}
       </div>
-      <p className="font-semibold text-slate-800 text-sm mb-1">{win.checkName}</p>
-      <p className="text-slate-600 text-sm mb-3">{win.action}</p>
-      <div className="flex items-center justify-between text-xs text-slate-500">
+      <p className="font-semibold text-slate-100 text-sm mb-1">{win.checkName}</p>
+      <p className="text-slate-300 text-sm mb-3">{win.action}</p>
+      <div className="flex items-center justify-between text-xs text-slate-400">
         <span>⏱ {win.timeEstimate}</span>
-        <span className="text-green-700 font-medium">{win.potentialGain}</span>
+        <span className="text-green-400 font-medium">{win.potentialGain}</span>
       </div>
     </div>
   );
@@ -176,24 +176,24 @@ function QuickWinCard({ win }: { win: QuickWin }) {
 
 function CheckRow({ check }: { check: AuditCheck }) {
   return (
-    <tr className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+    <tr className="border-b border-[#252525] hover:bg-[#252525] transition-colors">
       <td className="py-3 px-3 text-xs font-mono text-slate-400 whitespace-nowrap">
         {check.id}
       </td>
       <td className="py-3 px-3">
         <div className="flex items-center gap-2">
           {severityDot(check.severity)}
-          <span className="text-sm text-slate-700">{check.name}</span>
+          <span className="text-sm text-slate-200">{check.name}</span>
         </div>
       </td>
-      <td className="py-3 px-3 text-xs text-slate-500 whitespace-nowrap hidden md:table-cell">
+      <td className="py-3 px-3 text-xs text-slate-400 whitespace-nowrap hidden md:table-cell">
         {check.category}
       </td>
       <td className="py-3 px-3 whitespace-nowrap">{resultBadge(check.result)}</td>
-      <td className="py-3 px-3 text-sm text-slate-600 hidden lg:table-cell max-w-xs">
+      <td className="py-3 px-3 text-sm text-slate-300 hidden lg:table-cell max-w-xs">
         {check.finding}
       </td>
-      <td className="py-3 px-3 text-sm text-brand-600 hidden xl:table-cell max-w-xs">
+      <td className="py-3 px-3 text-sm text-brand-300 hidden xl:table-cell max-w-xs">
         {check.recommendation}
       </td>
     </tr>
@@ -219,7 +219,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
       <div className="flex justify-end">
         <button
           onClick={() => printSection(printRef)}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-300 border border-[#2d2d2d] rounded-xl bg-[#1e1e1e] hover:border-brand-300 hover:text-brand-300 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />

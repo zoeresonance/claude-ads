@@ -43,14 +43,14 @@ export default function PerformanceChart({ title, metrics }: Props) {
 
   if (!active || active.data.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+      <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-5">
         <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
-          <h4 className="font-semibold text-slate-800 text-sm">{title}</h4>
+          <h4 className="font-semibold text-slate-100 text-sm">{title}</h4>
           <div className="flex gap-1 flex-wrap">
             {metrics.map((m) => (
               <button key={m.key} onClick={() => setActiveKey(m.key)}
                 className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-                  activeKey === m.key ? "bg-brand-dark text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  activeKey === m.key ? "bg-brand-dark text-white" : "bg-[#2a2a2a] text-slate-400 hover:bg-[#333333]"
                 }`}>
                 {m.label}
               </button>
@@ -58,7 +58,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
           </div>
         </div>
         <p className="text-xs text-slate-400 mb-4">{active?.description ?? ""}</p>
-        <div className="h-[180px] flex items-center justify-center text-sm text-slate-400 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="h-[180px] flex items-center justify-center text-sm text-slate-500 bg-[#252525] rounded-xl border border-[#2d2d2d]">
           No data available for this period
         </div>
       </div>
@@ -68,9 +68,9 @@ export default function PerformanceChart({ title, metrics }: Props) {
   const chartData = active.data.map((d) => ({ date: shortDate(d.date), value: d.value }));
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+    <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-5">
       <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
-        <h4 className="font-semibold text-slate-800 text-sm">{title}</h4>
+        <h4 className="font-semibold text-slate-100 text-sm">{title}</h4>
         <div className="flex gap-1 flex-wrap">
           {metrics.map((m) => (
             <button
@@ -79,7 +79,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
               className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
                 activeKey === m.key
                   ? "bg-brand-dark text-white"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  : "bg-[#2a2a2a] text-slate-400 hover:bg-[#333333]"
               }`}
             >
               {m.label}
@@ -97,7 +97,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
               <stop offset="95%" stopColor={active.color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" />
           <XAxis
             dataKey="date"
             tick={{ fontSize: 10, fill: "#94a3b8" }}
@@ -113,9 +113,9 @@ export default function PerformanceChart({ title, metrics }: Props) {
             width={52}
           />
           <Tooltip
-            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e2e8f0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #2d2d2d", background: "#1e1e1e", boxShadow: "0 2px 8px rgba(0,0,0,0.4)" }}
             formatter={(v) => [formatValue(Number(v ?? 0), active.format), active.label]}
-            labelStyle={{ color: "#475569", fontWeight: 600 }}
+            labelStyle={{ color: "#cbd5e1", fontWeight: 600 }}
           />
           <Area
             type="monotone"

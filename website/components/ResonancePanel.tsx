@@ -23,17 +23,17 @@ interface Props {
 }
 
 const GRADE_COLORS: Record<string, string> = {
-  A: "text-green-600 bg-green-50 border-green-200",
-  B: "text-brand-600 bg-brand-50 border-brand-200",
-  C: "text-yellow-600 bg-yellow-50 border-yellow-200",
-  D: "text-orange-600 bg-orange-50 border-orange-200",
-  F: "text-red-600 bg-red-50 border-red-200",
+  A: "text-green-400 bg-green-950/40 border-green-700",
+  B: "text-brand-300 bg-[#0d2020] border-brand-600",
+  C: "text-yellow-400 bg-yellow-950/40 border-yellow-700",
+  D: "text-orange-400 bg-orange-950/40 border-orange-700",
+  F: "text-red-400 bg-red-950/40 border-red-700",
 };
 
 const IMPACT_COLORS: Record<string, string> = {
-  HIGH: "bg-red-100 text-red-700",
-  MEDIUM: "bg-yellow-100 text-yellow-700",
-  LOW: "bg-slate-100 text-slate-600",
+  HIGH: "bg-red-950/40 text-red-400",
+  MEDIUM: "bg-yellow-950/40 text-yellow-400",
+  LOW: "bg-[#2a2a2a] text-slate-400",
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -58,22 +58,22 @@ const ORGANIC_DIMENSION_LABELS: Record<string, string> = {
 };
 
 function ScoreRing({ score, label }: { score: number; label: string }) {
-  const color = score >= 75 ? "text-green-600" : score >= 55 ? "text-yellow-600" : "text-red-600";
+  const color = score >= 75 ? "text-green-400" : score >= 55 ? "text-yellow-400" : "text-red-400";
   return (
     <div className="flex flex-col items-center gap-1">
       <div className={`text-2xl font-bold ${color}`}>{score}</div>
-      <div className="text-xs text-slate-500 text-center">{label}</div>
+      <div className="text-xs text-slate-400 text-center">{label}</div>
     </div>
   );
 }
 
 function RecommendationCard({ rec, index }: { rec: ResonanceRecommendation; index: number }) {
   return (
-    <div className="border border-slate-200 rounded-xl p-4 space-y-2">
+    <div className="border border-[#2d2d2d] rounded-xl p-4 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-400">#{index + 1}</span>
-          <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded-full">
+          <span className="text-xs font-semibold text-slate-500">#{index + 1}</span>
+          <span className="text-xs bg-[#2a2a2a] text-slate-300 font-medium px-2 py-0.5 rounded-full">
             {TYPE_LABELS[rec.type] ?? rec.type}
           </span>
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${IMPACT_COLORS[rec.impact]}`}>
@@ -81,16 +81,16 @@ function RecommendationCard({ rec, index }: { rec: ResonanceRecommendation; inde
           </span>
         </div>
       </div>
-      <div className="text-sm font-semibold text-slate-800">{rec.target}</div>
+      <div className="text-sm font-semibold text-slate-100">{rec.target}</div>
       {rec.currentState && (
-        <div className="text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
-          <span className="font-medium text-slate-600">Currently: </span>{rec.currentState}
+        <div className="text-xs text-slate-400 bg-[#252525] rounded-lg px-3 py-2">
+          <span className="font-medium text-slate-300">Currently: </span>{rec.currentState}
         </div>
       )}
-      <div className="text-xs text-brand-700 bg-brand-50 rounded-lg px-3 py-2">
+      <div className="text-xs text-brand-300 bg-[#0d2020] rounded-lg px-3 py-2">
         <span className="font-medium">Suggestion: </span>{rec.suggestion}
       </div>
-      <div className="text-xs text-slate-500">{rec.reasoning}</div>
+      <div className="text-xs text-slate-400">{rec.reasoning}</div>
     </div>
   );
 }
@@ -113,19 +113,19 @@ function ScorePanel({
   return (
     <div className="space-y-4">
       {/* Score header */}
-      <div className={`bg-white rounded-2xl border-2 ${accentColor} shadow-sm p-6`}>
+      <div className={`bg-[#1e1e1e] rounded-2xl border-2 ${accentColor} shadow-sm p-6`}>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{icon}</span>
-              <h3 className="text-base font-bold text-slate-900">{label}</h3>
+              <h3 className="text-base font-bold text-white">{label}</h3>
             </div>
-            <p className="text-sm text-slate-600 max-w-xl">{data.summary}</p>
+            <p className="text-sm text-slate-300 max-w-xl">{data.summary}</p>
           </div>
           <div className="flex items-center gap-4 shrink-0">
             <div className="text-center">
-              <div className="text-4xl font-bold text-slate-900">{data.score}</div>
-              <div className="text-xs text-slate-500 mt-0.5">/ 100</div>
+              <div className="text-4xl font-bold text-white">{data.score}</div>
+              <div className="text-xs text-slate-400 mt-0.5">/ 100</div>
             </div>
             <div className={`text-3xl font-bold px-4 py-2 rounded-xl border-2 ${gradeClass}`}>
               {data.grade}
@@ -135,8 +135,8 @@ function ScorePanel({
       </div>
 
       {/* Dimensions */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h4 className="font-semibold text-slate-800 mb-4">Score Breakdown</h4>
+      <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+        <h4 className="font-semibold text-slate-100 mb-4">Score Breakdown</h4>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {Object.entries(data.dimensions).map(([key, dim]) => (
             <ScoreRing key={key} score={dim.score} label={dimensionLabels[key] ?? key} />
@@ -145,40 +145,40 @@ function ScorePanel({
         <div className="space-y-3">
           {Object.entries(data.dimensions).map(([key, dim]) => (
             <div key={key} className="flex gap-3 text-sm">
-              <span className="font-medium text-slate-700 w-48 shrink-0">
+              <span className="font-medium text-slate-200 w-48 shrink-0">
                 {dimensionLabels[key] ?? key}
               </span>
-              <span className="text-slate-600">{dim.finding}</span>
+              <span className="text-slate-400">{dim.finding}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Persona Fit */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h4 className="font-semibold text-slate-800 mb-3">
+      <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+        <h4 className="font-semibold text-slate-100 mb-3">
           Persona Fit —{" "}
-          <span className="text-brand-600">{data.personaFit.primaryPersonaName}</span>
-          <span className="ml-2 text-sm font-normal text-slate-500">
+          <span className="text-brand-300">{data.personaFit.primaryPersonaName}</span>
+          <span className="ml-2 text-sm font-normal text-slate-400">
             Match: {data.personaFit.matchScore}/100
           </span>
         </h4>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <div className="text-xs font-semibold text-green-700 mb-2">✓ Strengths</div>
+            <div className="text-xs font-semibold text-green-400 mb-2">✓ Strengths</div>
             <ul className="space-y-1">
               {data.personaFit.strengths.map((s, i) => (
-                <li key={i} className="text-sm text-slate-700 flex gap-2">
+                <li key={i} className="text-sm text-slate-300 flex gap-2">
                   <span className="text-green-500 shrink-0">•</span>{s}
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <div className="text-xs font-semibold text-red-600 mb-2">✗ Gaps</div>
+            <div className="text-xs font-semibold text-red-400 mb-2">✗ Gaps</div>
             <ul className="space-y-1">
               {data.personaFit.gaps.map((g, i) => (
-                <li key={i} className="text-sm text-slate-700 flex gap-2">
+                <li key={i} className="text-sm text-slate-300 flex gap-2">
                   <span className="text-red-400 shrink-0">•</span>{g}
                 </li>
               ))}
@@ -189,26 +189,26 @@ function ScorePanel({
 
       {/* Performers */}
       <div className="grid sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h4 className="font-semibold text-slate-800 mb-3">Top Performers</h4>
+        <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+          <h4 className="font-semibold text-slate-100 mb-3">Top Performers</h4>
           <div className="space-y-3">
             {data.topPerformers.map((p, i) => (
-              <div key={i} className="text-sm border-l-2 border-green-400 pl-3">
-                <div className="text-xs text-slate-400 mb-0.5 uppercase">{p.type.replace("_", " ")} · {p.metric}</div>
-                <div className="text-slate-700 font-medium">"{p.identifier}"</div>
-                <div className="text-slate-500 text-xs mt-0.5">{p.whyItLands}</div>
+              <div key={i} className="text-sm border-l-2 border-green-500 pl-3">
+                <div className="text-xs text-slate-500 mb-0.5 uppercase">{p.type.replace("_", " ")} · {p.metric}</div>
+                <div className="text-slate-200 font-medium">"{p.identifier}"</div>
+                <div className="text-slate-400 text-xs mt-0.5">{p.whyItLands}</div>
               </div>
             ))}
           </div>
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h4 className="font-semibold text-slate-800 mb-3">Underperformers</h4>
+        <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+          <h4 className="font-semibold text-slate-100 mb-3">Underperformers</h4>
           <div className="space-y-3">
             {data.bottomPerformers.map((p, i) => (
-              <div key={i} className="text-sm border-l-2 border-red-300 pl-3">
-                <div className="text-xs text-slate-400 mb-0.5 uppercase">{p.type.replace("_", " ")} · {p.metric}</div>
-                <div className="text-slate-700 font-medium">"{p.identifier}"</div>
-                <div className="text-slate-500 text-xs mt-0.5">{p.whyItMisses}</div>
+              <div key={i} className="text-sm border-l-2 border-red-500 pl-3">
+                <div className="text-xs text-slate-500 mb-0.5 uppercase">{p.type.replace("_", " ")} · {p.metric}</div>
+                <div className="text-slate-200 font-medium">"{p.identifier}"</div>
+                <div className="text-slate-400 text-xs mt-0.5">{p.whyItMisses}</div>
               </div>
             ))}
           </div>
@@ -216,10 +216,10 @@ function ScorePanel({
       </div>
 
       {/* Recommendations */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h4 className="font-semibold text-slate-800 mb-4">
+      <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+        <h4 className="font-semibold text-slate-100 mb-4">
           Recommendations
-          <span className="ml-2 text-sm font-normal text-slate-400">
+          <span className="ml-2 text-sm font-normal text-slate-500">
             {data.recommendations.length} actions
           </span>
         </h4>
@@ -243,7 +243,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
       <div className="flex justify-end">
         <button
           onClick={() => printSection(printRef)}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-300 border border-[#2d2d2d] rounded-xl bg-[#1e1e1e] hover:border-brand-300 hover:text-brand-300 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />
@@ -255,11 +255,11 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
       <div ref={printRef} className="space-y-6">
 
       {/* Toggle header */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+      <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-4">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-lg">🎯</span>
-          <h2 className="text-base font-bold text-slate-900">Resonance Score</h2>
-          <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{clientName}</span>
+          <h2 className="text-base font-bold text-white">Resonance Score</h2>
+          <span className="text-xs text-slate-400 bg-[#2a2a2a] px-2 py-0.5 rounded-full">{clientName}</span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {(["ads", "organic"] as const).map((tab) => {
@@ -271,18 +271,18 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                 key={tab}
                 onClick={() => setActive(tab)}
                 className={`rounded-xl border-2 p-3 text-left transition-all ${
-                  isActive ? "border-brand-300 bg-brand-50" : "border-slate-200 bg-white hover:border-slate-300"
+                  isActive ? "border-brand-300 bg-[#0d2020]" : "border-[#2d2d2d] bg-[#252525] hover:border-[#444]"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-slate-600">
+                  <span className="text-xs font-semibold text-slate-300">
                     {tab === "ads" ? "📣 Ads" : "🌱 Organic"}
                   </span>
                   <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${gradeClass}`}>
                     {data.grade}
                   </span>
                 </div>
-                <div className="text-2xl font-bold text-slate-900">
+                <div className="text-2xl font-bold text-white">
                   {data.score}
                   <span className="text-xs font-normal text-slate-400 ml-1">/ 100</span>
                 </div>
@@ -335,7 +335,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             dimensionLabels={ORGANIC_DIMENSION_LABELS}
             icon="🌱"
             label="Organic Resonance — Facebook & Instagram"
-            accentColor="border-green-200"
+            accentColor="border-green-700"
           />
           {performance ? (
             <div className="space-y-4">
@@ -365,7 +365,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
               </div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 text-center text-sm text-slate-400">
+            <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-5 text-center text-sm text-slate-500">
               Performance charts loading…
             </div>
           )}

@@ -598,13 +598,13 @@ export default function InputForm({ onAnalyze, loading }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* CSV Upload banner */}
-      <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-[#0d2020] border border-brand-600 rounded-xl p-4 flex items-start gap-3">
         <span className="text-2xl">📁</span>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-brand-700 text-sm">
+          <p className="font-semibold text-brand-300 text-sm">
             Speed up setup: Import from Meta Ads Manager
           </p>
-          <p className="text-brand-600 text-xs mt-0.5">
+          <p className="text-slate-400 text-xs mt-0.5">
             Export a CSV from Ads Manager (Campaigns view, last 30 days) to auto-fill key metrics.
           </p>
           <div className="mt-2 flex items-center gap-3">
@@ -616,7 +616,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
               Upload CSV
             </button>
             {csvParsed && (
-              <span className="text-xs text-green-700 font-medium">
+              <span className="text-xs text-green-400 font-medium">
                 ✓ CSV imported — metrics pre-filled below
               </span>
             )}
@@ -641,7 +641,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
             className={`flex-shrink-0 text-xs px-3 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
               activeSection === i
                 ? "bg-brand-dark text-white"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-brand-300"
+                : "bg-[#252525] text-slate-400 border border-[#2d2d2d] hover:border-brand-300 hover:text-slate-200"
             }`}
           >
             {s.icon} {s.title}
@@ -650,8 +650,8 @@ export default function InputForm({ onAnalyze, loading }: Props) {
       </div>
 
       {/* Active section fields */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+      <div className="bg-[#1e1e1e] rounded-xl border border-[#2d2d2d] p-6">
+        <h3 className="font-semibold text-slate-100 mb-4 flex items-center gap-2">
           <span>{SECTIONS[activeSection].icon}</span>
           {SECTIONS[activeSection].title}
         </h3>
@@ -659,9 +659,9 @@ export default function InputForm({ onAnalyze, loading }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {SECTIONS[activeSection].fields.map((field) => (
             <div key={field.key} className="space-y-1">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-300">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                {field.required && <span className="text-red-400 ml-1">*</span>}
               </label>
               {field.hint && (
                 <p className="text-xs text-slate-500">{field.hint}</p>
@@ -670,7 +670,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
                 <select
                   value={metrics[field.key] ?? ""}
                   onChange={(e) => update(field.key, e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800"
+                  className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 bg-[#2a2a2a] focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-100"
                 >
                   {field.options?.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -684,7 +684,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
                   value={metrics[field.key] ?? ""}
                   onChange={(e) => update(field.key, e.target.value)}
                   placeholder={field.placeholder}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800 placeholder-slate-400"
+                  className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-100 placeholder-slate-500 bg-[#2a2a2a]"
                 />
               )}
             </div>
@@ -693,8 +693,8 @@ export default function InputForm({ onAnalyze, loading }: Props) {
       </div>
 
       {/* Additional context */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <label className="block text-sm font-medium text-slate-700 mb-1">
+      <div className="bg-[#1e1e1e] rounded-xl border border-[#2d2d2d] p-6">
+        <label className="block text-sm font-medium text-slate-300 mb-1">
           Additional Context (optional)
         </label>
         <p className="text-xs text-slate-500 mb-2">
@@ -705,7 +705,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
           onChange={(e) => update("additionalContext", e.target.value)}
           rows={3}
           placeholder="e.g. We recently switched from manual targeting to Advantage+ audience. ROAS dropped from 3.2 to 2.1 in the last 2 weeks…"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 text-slate-800 placeholder-slate-400 resize-none"
+          className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 text-slate-100 placeholder-slate-500 resize-none bg-[#2a2a2a]"
         />
       </div>
 
@@ -716,7 +716,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
             type="button"
             onClick={() => setActiveSection((i) => Math.max(0, i - 1))}
             disabled={activeSection === 0}
-            className="text-sm px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-sm px-4 py-2 border border-[#2d2d2d] rounded-lg text-slate-400 hover:border-brand-300 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             ← Previous
           </button>
@@ -724,7 +724,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
             type="button"
             onClick={() => setActiveSection((i) => Math.min(SECTIONS.length - 1, i + 1))}
             disabled={activeSection === SECTIONS.length - 1}
-            className="text-sm px-4 py-2 border border-slate-200 rounded-lg text-slate-600 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="text-sm px-4 py-2 border border-[#2d2d2d] rounded-lg text-slate-400 hover:border-brand-300 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             Next →
           </button>

@@ -43,70 +43,70 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50">
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">New Client</p>
+    <form onSubmit={handleSubmit} className="mt-3 border border-[#2d2d2d] rounded-xl p-4 space-y-3 bg-[#252525]">
+      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">New Client</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
-            Client Name <span className="text-red-500">*</span>
+          <label className="block text-xs font-medium text-slate-300 mb-1">
+            Client Name <span className="text-red-400">*</span>
           </label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             placeholder="e.g. Stonecreek"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
+            className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">
-            Ad Account ID <span className="text-red-500">*</span>
+          <label className="block text-xs font-medium text-slate-300 mb-1">
+            Ad Account ID <span className="text-red-400">*</span>
           </label>
           <input
             value={adAccountId}
             onChange={(e) => setAdAccountId(e.target.value)}
             required
             placeholder="e.g. act_123456789"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
+            className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Facebook Page ID</label>
+          <label className="block text-xs font-medium text-slate-300 mb-1">Facebook Page ID</label>
           <input
             value={facebookPageId}
             onChange={(e) => setFacebookPageId(e.target.value)}
             placeholder="e.g. 22340809962"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
+            className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-600 mb-1">Instagram Account ID</label>
+          <label className="block text-xs font-medium text-slate-300 mb-1">Instagram Account ID</label>
           <input
             value={instagramAccountId}
             onChange={(e) => setInstagramAccountId(e.target.value)}
             placeholder="e.g. 17841401460562901"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
+            className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-slate-600 mb-1">
+        <label className="block text-xs font-medium text-slate-300 mb-1">
           Persona / Audience Audit Doc
-          <span className="ml-1 text-slate-400 font-normal">(optional — powers Resonance Score)</span>
+          <span className="ml-1 text-slate-500 font-normal">(optional — powers Resonance Score)</span>
         </label>
         <textarea
           value={auditDoc}
           onChange={(e) => setAuditDoc(e.target.value)}
           rows={5}
           placeholder="Paste your audience persona document here…"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white resize-y font-mono"
+          className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500 resize-y font-mono"
         />
       </div>
 
       {error && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+        <p className="text-xs text-red-400 bg-red-950/40 border border-red-800 rounded-lg px-3 py-2">{error}</p>
       )}
 
       <div className="flex items-center gap-2">
@@ -171,10 +171,10 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           { icon: "📅", title: "Choose a date range", desc: "Adjust the analysis window" },
           { icon: "🤖", title: "AI audit + resonance", desc: "Health and audience scoring in ~30 sec" },
         ].map((s) => (
-          <div key={s.title} className="bg-slate-50 rounded-xl p-4 text-center">
+          <div key={s.title} className="bg-[#252525] rounded-xl p-4 text-center">
             <div className="text-2xl mb-1">{s.icon}</div>
-            <div className="font-semibold text-slate-800 text-sm">{s.title}</div>
-            <div className="text-slate-500 text-xs mt-0.5">{s.desc}</div>
+            <div className="font-semibold text-slate-100 text-sm">{s.title}</div>
+            <div className="text-slate-400 text-xs mt-0.5">{s.desc}</div>
           </div>
         ))}
       </div>
@@ -182,8 +182,8 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       {/* Client selector */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-semibold text-slate-700">
-            Client <span className="text-red-500">*</span>
+          <label className="block text-sm font-semibold text-slate-200">
+            Client <span className="text-red-400">*</span>
           </label>
           <button
             type="button"
@@ -195,11 +195,11 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
         </div>
 
         {fetchingClients && (
-          <p className="text-sm text-slate-500 animate-pulse">Loading clients…</p>
+          <p className="text-sm text-slate-400 animate-pulse">Loading clients…</p>
         )}
 
         {fetchError && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p className="text-sm text-red-400 bg-red-950/40 border border-red-800 rounded-lg px-3 py-2">
             {fetchError}
           </p>
         )}
@@ -209,7 +209,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
             required
-            className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800 bg-white"
+            className="w-full text-sm border border-[#2d2d2d] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-100 bg-[#2a2a2a]"
           >
             {clients.map((c) => (
               <option key={c.adAccountId} value={c.adAccountId}>
@@ -220,8 +220,8 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
         )}
 
         {!fetchingClients && !fetchError && clients.length === 0 && !showAddForm && (
-          <p className="text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-            No clients yet. Click <strong>+ Add new client</strong> to get started.
+          <p className="text-sm text-slate-400 bg-[#252525] border border-[#2d2d2d] rounded-lg px-3 py-2">
+            No clients yet. Click <strong className="text-slate-200">+ Add new client</strong> to get started.
           </p>
         )}
 
