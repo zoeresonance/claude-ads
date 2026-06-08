@@ -164,21 +164,6 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* How it works */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { icon: "👤", title: "Pick a client", desc: "Choose from your configured clients" },
-          { icon: "📅", title: "Choose a date range", desc: "Adjust the analysis window" },
-          { icon: "🤖", title: "AI audit + resonance", desc: "Health and audience scoring in ~30 sec" },
-        ].map((s) => (
-          <div key={s.title} className="bg-[#252525] rounded-xl p-4 text-center">
-            <div className="text-2xl mb-1">{s.icon}</div>
-            <div className="font-semibold text-slate-100 text-sm">{s.title}</div>
-            <div className="text-slate-400 text-xs mt-0.5">{s.desc}</div>
-          </div>
-        ))}
-      </div>
-
       {/* Client selector */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">

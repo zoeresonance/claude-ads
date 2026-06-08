@@ -172,27 +172,6 @@ export default function Home() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-8">
-        {/* Hero */}
-        {!result && !loading && (
-          <div className="text-center max-w-2xl mx-auto">
-            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3 leading-tight">
-              Diagnose Your Meta Ads
-              <span className="text-brand-600"> in 60 Seconds</span>
-            </h1>
-            <p className="text-slate-300 text-base leading-relaxed">
-              Connect your Meta account and get a live AI audit — ad health checks plus
-              audience resonance scored against your target persona.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-4">
-              {["50-check audit", "Health score", "Resonance score", "Real account data", "Persona-matched recommendations"].map((f) => (
-                <span key={f} className="text-xs bg-[#0d2020] text-brand-300 font-medium px-3 py-1 rounded-full border border-brand-600">
-                  {f}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Loading */}
         {loading && (
           <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] p-12 text-center shadow-sm">
