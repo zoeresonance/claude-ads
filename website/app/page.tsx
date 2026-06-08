@@ -154,18 +154,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <header className="bg-brand-dark sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📈</span>
-            <span className="font-bold text-slate-900 text-sm sm:text-base">
-              Meta Performance Analyzer
-            </span>
+          <div className="flex items-center gap-3">
+            <span className="font-bold text-white tracking-widest text-sm sm:text-base uppercase">Resonance</span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <span className="font-medium text-slate-400 text-sm hidden sm:inline">Meta Performance Analyzer</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
             <span className="hidden sm:inline">Powered by</span>
-            <span className="font-semibold text-slate-700">Gemini 2.5</span>
-            <span className="bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+            <span className="font-semibold text-slate-200">Gemini 2.5</span>
+            <span className="bg-brand-300 text-brand-dark font-semibold px-2 py-0.5 rounded-full">
               50 checks
             </span>
           </div>
@@ -178,7 +177,7 @@ export default function Home() {
           <div className="text-center max-w-2xl mx-auto">
             <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 leading-tight">
               Diagnose Your Meta Ads
-              <span className="text-blue-600"> in 60 Seconds</span>
+              <span className="text-brand-600"> in 60 Seconds</span>
             </h1>
             <p className="text-slate-600 text-base leading-relaxed">
               Connect your Meta account and get a live AI audit — ad health checks plus
@@ -186,7 +185,7 @@ export default function Home() {
             </p>
             <div className="flex flex-wrap justify-center gap-2 mt-4">
               {["50-check audit", "Health score", "Resonance score", "Real account data", "Persona-matched recommendations"].map((f) => (
-                <span key={f} className="text-xs bg-blue-50 text-blue-700 font-medium px-3 py-1 rounded-full border border-blue-100">
+                <span key={f} className="text-xs bg-brand-50 text-brand-700 font-medium px-3 py-1 rounded-full border border-brand-200">
                   {f}
                 </span>
               ))}
@@ -198,7 +197,7 @@ export default function Home() {
         {loading && (
           <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
             <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <div className="w-12 h-12 border-4 border-brand-300 border-t-transparent rounded-full animate-spin" />
             </div>
             <h3 className="font-semibold text-slate-800 text-lg mb-1">{loadingMsg}</h3>
             <p className="text-slate-500 text-sm">
@@ -236,7 +235,7 @@ export default function Home() {
               <button
                 onClick={() => setMode("connect")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "connect" ? "bg-white text-blue-600 border-b-2 border-blue-600" : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "connect" ? "bg-white text-brand-600 border-b-2 border-brand-300" : "text-slate-500 hover:text-slate-700 bg-slate-50"
                 }`}
               >
                 📡 Connect Meta Account
@@ -244,7 +243,7 @@ export default function Home() {
               <button
                 onClick={() => setMode("manual")}
                 className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
-                  mode === "manual" ? "bg-white text-blue-600 border-b-2 border-blue-600" : "text-slate-500 hover:text-slate-700 bg-slate-50"
+                  mode === "manual" ? "bg-white text-brand-600 border-b-2 border-brand-300" : "text-slate-500 hover:text-slate-700 bg-slate-50"
                 }`}
               >
                 ✏️ Enter Metrics Manually
@@ -262,27 +261,27 @@ export default function Home() {
 
         {/* Account summary bar */}
         {result && account && !loading && (
-          <div className="bg-blue-600 text-white rounded-2xl px-6 py-4 flex flex-wrap items-center gap-4">
+          <div className="bg-brand-dark text-white rounded-2xl px-6 py-4 flex flex-wrap items-center gap-4">
             <div>
-              <p className="text-blue-200 text-xs font-medium">Account</p>
+              <p className="text-brand-300 text-xs font-medium">Account</p>
               <p className="font-bold">{account.name}</p>
             </div>
-            <div className="h-8 w-px bg-blue-500 hidden sm:block" />
+            <div className="h-8 w-px bg-slate-700 hidden sm:block" />
             <div>
-              <p className="text-blue-200 text-xs font-medium">Campaigns</p>
+              <p className="text-brand-300 text-xs font-medium">Campaigns</p>
               <p className="font-bold">{account.campaigns}</p>
             </div>
             <div>
-              <p className="text-blue-200 text-xs font-medium">Ad Sets</p>
+              <p className="text-brand-300 text-xs font-medium">Ad Sets</p>
               <p className="font-bold">{account.adsets}</p>
             </div>
             <div>
-              <p className="text-blue-200 text-xs font-medium">Ads</p>
+              <p className="text-brand-300 text-xs font-medium">Ads</p>
               <p className="font-bold">{account.ads}</p>
             </div>
             {account.spend && (
               <div>
-                <p className="text-blue-200 text-xs font-medium">30-Day Spend</p>
+                <p className="text-brand-300 text-xs font-medium">30-Day Spend</p>
                 <p className="font-bold">
                   ${parseFloat(account.spend).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
@@ -290,19 +289,19 @@ export default function Home() {
             )}
             {account.dateRange && (
               <div>
-                <p className="text-blue-200 text-xs font-medium">Date Range</p>
+                <p className="text-brand-300 text-xs font-medium">Date Range</p>
                 <p className="font-bold">
                   {account.dateRange.since} → {account.dateRange.until}
                 </p>
               </div>
             )}
             <div className="ml-auto flex items-center gap-3">
-              <p className="text-blue-200 text-xs">
+              <p className="text-slate-400 text-xs">
                 Fetched {new Date(account.fetchedAt).toLocaleTimeString()}
               </p>
               <button
                 onClick={handleReset}
-                className="text-xs text-blue-200 hover:text-white underline"
+                className="text-xs text-slate-400 hover:text-white underline"
               >
                 ← New analysis
               </button>
@@ -318,7 +317,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveTab("health")}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                    activeTab === "health" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "health" ? "bg-brand-300 text-brand-dark" : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   Health Score
@@ -326,7 +325,7 @@ export default function Home() {
                 <button
                   onClick={() => setActiveTab("resonance")}
                   className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors flex items-center gap-2 ${
-                    activeTab === "resonance" ? "bg-blue-600 text-white" : "text-slate-500 hover:text-slate-700"
+                    activeTab === "resonance" ? "bg-brand-300 text-brand-dark" : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   Resonance Score
@@ -349,7 +348,7 @@ export default function Home() {
                 {resonanceLoading && (
                   <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                     <div className="flex justify-center mb-4">
-                      <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-10 h-10 border-4 border-brand-300 border-t-transparent rounded-full animate-spin" />
                     </div>
                     <p className="text-slate-600 font-medium">Analyzing audience resonance…</p>
                     <p className="text-slate-400 text-sm mt-1">Fetching organic data and comparing against your persona doc</p>
@@ -390,8 +389,8 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 text-center text-xs text-slate-400">
           <p>
             Built with{" "}
-            <a href="https://github.com/zoeresonance/claude-ads" className="text-slate-500 hover:text-blue-600 underline transition-colors" target="_blank" rel="noopener noreferrer">
-              claude-ads
+            <a href="https://resonance.com" className="text-slate-500 hover:text-brand-500 underline transition-colors" target="_blank" rel="noopener noreferrer">
+              Resonance
             </a>{" "}
             · Audit framework v1.5 · Meta Marketing API v21.0 · Benchmarks updated 2026
           </p>

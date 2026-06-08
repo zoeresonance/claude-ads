@@ -598,20 +598,20 @@ export default function InputForm({ onAnalyze, loading }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* CSV Upload banner */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+      <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 flex items-start gap-3">
         <span className="text-2xl">📁</span>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-blue-900 text-sm">
+          <p className="font-semibold text-brand-700 text-sm">
             Speed up setup: Import from Meta Ads Manager
           </p>
-          <p className="text-blue-700 text-xs mt-0.5">
+          <p className="text-brand-600 text-xs mt-0.5">
             Export a CSV from Ads Manager (Campaigns view, last 30 days) to auto-fill key metrics.
           </p>
           <div className="mt-2 flex items-center gap-3">
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="text-xs bg-brand-dark text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors font-medium"
             >
               Upload CSV
             </button>
@@ -640,8 +640,8 @@ export default function InputForm({ onAnalyze, loading }: Props) {
             onClick={() => setActiveSection(i)}
             className={`flex-shrink-0 text-xs px-3 py-2 rounded-lg font-medium transition-colors whitespace-nowrap ${
               activeSection === i
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-600 border border-slate-200 hover:border-blue-300"
+                ? "bg-brand-dark text-white"
+                : "bg-white text-slate-600 border border-slate-200 hover:border-brand-300"
             }`}
           >
             {s.icon} {s.title}
@@ -670,7 +670,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
                 <select
                   value={metrics[field.key] ?? ""}
                   onChange={(e) => update(field.key, e.target.value)}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800"
                 >
                   {field.options?.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -684,7 +684,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
                   value={metrics[field.key] ?? ""}
                   onChange={(e) => update(field.key, e.target.value)}
                   placeholder={field.placeholder}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 placeholder-slate-400"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800 placeholder-slate-400"
                 />
               )}
             </div>
@@ -705,7 +705,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
           onChange={(e) => update("additionalContext", e.target.value)}
           rows={3}
           placeholder="e.g. We recently switched from manual targeting to Advantage+ audience. ROAS dropped from 3.2 to 2.1 in the last 2 weeks…"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 placeholder-slate-400 resize-none"
+          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 text-slate-800 placeholder-slate-400 resize-none"
         />
       </div>
 
@@ -733,7 +733,7 @@ export default function InputForm({ onAnalyze, loading }: Props) {
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm text-sm flex items-center gap-2"
+          className="px-6 py-3 bg-brand-dark text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors shadow-sm text-sm flex items-center gap-2"
         >
           {loading ? (
             <>

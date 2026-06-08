@@ -90,7 +90,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
             value={value.since}
             max={value.until}
             onChange={(e) => onChange({ ...value, since: e.target.value })}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
           <span className="text-xs text-slate-400">→</span>
           <input
@@ -99,7 +99,7 @@ export default function DateRangePicker({ value, onChange }: Props) {
             min={value.since}
             max={fmtDate(new Date())}
             onChange={(e) => onChange({ ...value, until: e.target.value })}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-300"
           />
         </div>
       )}

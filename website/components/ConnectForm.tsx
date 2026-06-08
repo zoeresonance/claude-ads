@@ -56,7 +56,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
             onChange={(e) => setName(e.target.value)}
             required
             placeholder="e.g. Stonecreek"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
           />
         </div>
         <div>
@@ -68,7 +68,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
             onChange={(e) => setAdAccountId(e.target.value)}
             required
             placeholder="e.g. act_123456789"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
           />
         </div>
         <div>
@@ -77,7 +77,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
             value={facebookPageId}
             onChange={(e) => setFacebookPageId(e.target.value)}
             placeholder="e.g. 22340809962"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
           />
         </div>
         <div>
@@ -86,7 +86,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
             value={instagramAccountId}
             onChange={(e) => setInstagramAccountId(e.target.value)}
             placeholder="e.g. 17841401460562901"
-            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white"
           />
         </div>
       </div>
@@ -101,7 +101,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
           onChange={(e) => setAuditDoc(e.target.value)}
           rows={5}
           placeholder="Paste your audience persona document here…"
-          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-y font-mono"
+          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-white resize-y font-mono"
         />
       </div>
 
@@ -113,7 +113,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
         <button
           type="submit"
           disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-brand-dark text-white text-sm font-semibold rounded-lg hover:bg-slate-800 disabled:opacity-50 transition-colors"
         >
           {saving ? "Creating…" : "Create Client"}
         </button>
@@ -188,7 +188,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           <button
             type="button"
             onClick={() => setShowAddForm((v) => !v)}
-            className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            className="text-xs text-brand-600 hover:text-brand-700 font-medium transition-colors"
           >
             {showAddForm ? "Cancel" : "+ Add new client"}
           </button>
@@ -209,7 +209,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
             required
-            className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-slate-800 bg-white"
+            className="w-full text-sm border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-800 bg-white"
           >
             {clients.map((c) => (
               <option key={c.adAccountId} value={c.adAccountId}>
@@ -234,7 +234,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       <button
         type="submit"
         disabled={loading || !selectedId}
-        className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
+        className="w-full py-3.5 bg-brand-dark text-white font-semibold rounded-xl hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
       >
         {loading ? (
           <>

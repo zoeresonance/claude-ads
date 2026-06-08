@@ -20,7 +20,7 @@ const CIRCUMFERENCE = 2 * Math.PI * 45; // r=45
 
 function gradeColor(grade: string) {
   if (grade === "A") return "#16a34a";
-  if (grade === "B") return "#2563eb";
+  if (grade === "B") return "#3a7878";
   if (grade === "C") return "#d97706";
   if (grade === "D") return "#ea580c";
   return "#dc2626";
@@ -28,7 +28,7 @@ function gradeColor(grade: string) {
 
 function scoreColor(score: number) {
   if (score >= 75) return "#16a34a";
-  if (score >= 60) return "#2563eb";
+  if (score >= 60) return "#3a7878";
   if (score >= 45) return "#d97706";
   return "#dc2626";
 }
@@ -193,7 +193,7 @@ function CheckRow({ check }: { check: AuditCheck }) {
       <td className="py-3 px-3 text-sm text-slate-600 hidden lg:table-cell max-w-xs">
         {check.finding}
       </td>
-      <td className="py-3 px-3 text-sm text-blue-700 hidden xl:table-cell max-w-xs">
+      <td className="py-3 px-3 text-sm text-brand-600 hidden xl:table-cell max-w-xs">
         {check.recommendation}
       </td>
     </tr>
@@ -219,7 +219,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
       <div className="flex justify-end">
         <button
           onClick={() => printSection(printRef)}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:text-blue-700 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />
@@ -315,7 +315,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
             result.emqStatus === "excellent"
               ? "bg-green-50 border-green-200"
               : result.emqStatus === "good"
-              ? "bg-blue-50 border-blue-200"
+              ? "bg-brand-50 border-brand-200"
               : result.emqStatus === "fair"
               ? "bg-yellow-50 border-yellow-200"
               : "bg-red-50 border-red-200"
@@ -326,7 +326,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
               result.emqStatus === "excellent"
                 ? "text-green-800"
                 : result.emqStatus === "good"
-                ? "text-blue-800"
+                ? "text-brand-700"
                 : result.emqStatus === "fair"
                 ? "text-yellow-800"
                 : "text-red-800"
@@ -340,7 +340,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
               result.emqStatus === "excellent"
                 ? "text-green-700"
                 : result.emqStatus === "good"
-                ? "text-blue-700"
+                ? "text-brand-600"
                 : result.emqStatus === "fair"
                 ? "text-yellow-700"
                 : "text-red-700"
@@ -356,7 +356,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
         <PerformanceChart
           title="Ad Performance"
           metrics={[
-            { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                          data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+            { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                          data: performance.ads.spend,       format: "currency", color: "#3a7878" },
             { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",          data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
             { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                             data: performance.ads.cpm,         format: "currency", color: "#d97706" },
             { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                              data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
@@ -439,7 +439,7 @@ export default function ResultsDashboard({ result, onReset, performance }: Props
       <div className="flex justify-center pb-8">
         <button
           onClick={onReset}
-          className="px-6 py-3 border border-slate-200 rounded-xl text-slate-600 font-medium hover:border-blue-300 hover:text-blue-700 transition-colors text-sm"
+          className="px-6 py-3 border border-slate-200 rounded-xl text-slate-600 font-medium hover:border-brand-300 hover:text-brand-600 transition-colors text-sm"
         >
           ← Run Another Analysis
         </button>

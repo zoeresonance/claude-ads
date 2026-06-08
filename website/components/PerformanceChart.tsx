@@ -50,7 +50,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
             {metrics.map((m) => (
               <button key={m.key} onClick={() => setActiveKey(m.key)}
                 className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
-                  activeKey === m.key ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  activeKey === m.key ? "bg-brand-dark text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}>
                 {m.label}
               </button>
@@ -78,7 +78,7 @@ export default function PerformanceChart({ title, metrics }: Props) {
               onClick={() => setActiveKey(m.key)}
               className={`px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
                 activeKey === m.key
-                  ? "bg-blue-600 text-white"
+                  ? "bg-brand-dark text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >

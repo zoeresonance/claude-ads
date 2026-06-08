@@ -24,7 +24,7 @@ interface Props {
 
 const GRADE_COLORS: Record<string, string> = {
   A: "text-green-600 bg-green-50 border-green-200",
-  B: "text-blue-600 bg-blue-50 border-blue-200",
+  B: "text-brand-600 bg-brand-50 border-brand-200",
   C: "text-yellow-600 bg-yellow-50 border-yellow-200",
   D: "text-orange-600 bg-orange-50 border-orange-200",
   F: "text-red-600 bg-red-50 border-red-200",
@@ -87,7 +87,7 @@ function RecommendationCard({ rec, index }: { rec: ResonanceRecommendation; inde
           <span className="font-medium text-slate-600">Currently: </span>{rec.currentState}
         </div>
       )}
-      <div className="text-xs text-blue-800 bg-blue-50 rounded-lg px-3 py-2">
+      <div className="text-xs text-brand-700 bg-brand-50 rounded-lg px-3 py-2">
         <span className="font-medium">Suggestion: </span>{rec.suggestion}
       </div>
       <div className="text-xs text-slate-500">{rec.reasoning}</div>
@@ -158,7 +158,7 @@ function ScorePanel({
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         <h4 className="font-semibold text-slate-800 mb-3">
           Persona Fit —{" "}
-          <span className="text-blue-600">{data.personaFit.primaryPersonaName}</span>
+          <span className="text-brand-600">{data.personaFit.primaryPersonaName}</span>
           <span className="ml-2 text-sm font-normal text-slate-500">
             Match: {data.personaFit.matchScore}/100
           </span>
@@ -243,7 +243,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
       <div className="flex justify-end">
         <button
           onClick={() => printSection(printRef)}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-blue-300 hover:text-blue-700 transition-colors shadow-sm"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-600 border border-slate-200 rounded-xl bg-white hover:border-brand-300 hover:text-brand-600 transition-colors shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a1 1 0 001 1h16a1 1 0 001-1v-3M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M3 7h18" />
@@ -271,7 +271,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                 key={tab}
                 onClick={() => setActive(tab)}
                 className={`rounded-xl border-2 p-3 text-left transition-all ${
-                  isActive ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"
+                  isActive ? "border-brand-300 bg-brand-50" : "border-slate-200 bg-white hover:border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -303,14 +303,14 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             dimensionLabels={ADS_DIMENSION_LABELS}
             icon="📣"
             label="Ads Resonance"
-            accentColor="border-blue-200"
+            accentColor="border-brand-200"
           />
           {performance && (
             <div className="space-y-4">
               <PerformanceChart
                 title="Ad Performance"
                 metrics={[
-                  { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                    data: performance.ads.spend,       format: "currency", color: "#2563eb" },
+                  { key: "spend",       label: "Spend",       description: "Total ad spend for the period.",                                    data: performance.ads.spend,       format: "currency", color: "#3a7878" },
                   { key: "ctr",         label: "CTR",         description: "Click-through rate — % of impressions that resulted in a click.",  data: performance.ads.ctr,         format: "percent",  color: "#16a34a" },
                   { key: "cpm",         label: "CPM",         description: "Cost per 1,000 impressions.",                                     data: performance.ads.cpm,         format: "currency", color: "#d97706" },
                   { key: "impressions", label: "Impressions", description: "Total number of times your ads were shown.",                      data: performance.ads.impressions, format: "number",   color: "#7c3aed" },
@@ -351,7 +351,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                 <PerformanceChart
                   title="Facebook — Organic"
                   metrics={[
-                    { key: "reach",       label: "Reach",       description: "Unique people who saw any of your page's content.",             data: performance.organic.fb.reach,       format: "number", color: "#1877f2" },
+                    { key: "reach",       label: "Reach",       description: "Unique people who saw any of your page's content.",             data: performance.organic.fb.reach,       format: "number", color: "#4e9494" },
                     { key: "engagements", label: "Engagements", description: "Total post reactions, comments, shares, and link clicks.",       data: performance.organic.fb.engagements, format: "number", color: "#16a34a" },
                   ]}
                 />
