@@ -288,7 +288,7 @@ ${creativeAnalysis(data)}`);
 
   sections.push(`## Pixel & Conversion Tracking
 ${pixelSummary(data)}
-NOTE: Event Match Quality (EMQ) scores, CAPI status, and event deduplication rates are not directly available via the Marketing API. These must be checked in Meta Events Manager. Please evaluate M01-M04 based on pixel firing status above and note that EMQ/CAPI checks require manual verification.`);
+NOTE: Event Match Quality (EMQ) scores, CAPI status, and event deduplication rates are not directly available via the Marketing API. These must be checked in Meta Events Manager. If no pixel is present and campaign objectives are awareness, reach, engagement, or video views, mark ALL of M01–M10 and M-AT1 as N/A — do not mark them as FAIL. Only score pixel checks when the account is actively using website conversion tracking.`);
 
   sections.push(`## Account-Level Performance (Last 30 Days)
 ${insightsSummary(data.accountInsights)}`);
