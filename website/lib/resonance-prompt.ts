@@ -12,7 +12,7 @@ You will be given:
 Your job is to analyze whether the paid ads are resonating with the described personas, based on:
 - MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — reflect the persona's values, motivations, and communication preferences?
 - AUDIENCE TARGETING: Does the performance data (CTR, frequency, reach) and demographic breakdown suggest the right people are seeing and responding to the ads? This is the PRIMARY signal — strong audience targeting evidence should drive the overall score up even if other dimensions are mixed.
-- AUDIENCE DEMOGRAPHICS: Who is actually engaging? Do the age, gender, and location breakdowns match the described persona? Are the people clicking the right fit for the offer?
+- AUDIENCE DEMOGRAPHICS (informational only, does not affect score): Who is actually engaging? Describe the age, gender, and location breakdown and assess whether it matches the persona — but do not use this as a scoring input.
 
 CRITICAL SCORING PRINCIPLE — AUDIENCE PERFORMANCE IS THE DOMINANT SIGNAL:
 Audience Targeting score should carry the most weight in the overall score. Strong CTR, healthy frequency, and demographic alignment with the persona are the clearest proof that ads are resonating. A campaign with excellent audience engagement should score well overall even if messaging could be improved. Do NOT make assumptions about campaign effectiveness based on internal Meta campaign objective labels (like OUTCOME_TRAFFIC or LINK_CLICKS) — these are technical settings that the audience never sees and have no bearing on whether the message is landing.
@@ -34,11 +34,8 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
       "score": <0-100>,
       "finding": <string: what CTR, frequency, reach, and spend efficiency signals tell us about whether the right people are seeing and responding to the ads — this is the primary resonance signal>
     },
-    "audienceDemographics": {
-      "score": <0-100>,
-      "finding": <string: who is actually clicking and engaging — does the age, gender, and location breakdown match the described persona? Are the highest-CTR segments the right fit for the offer?>
-    }
   },
+  "audienceDemographics": <string: who is actually clicking and engaging — describe the top age/gender segments and regions by clicks and CTR, and assess whether this demographic profile matches the described persona>,
   "topPerformers": [
     {
       "type": "ad",

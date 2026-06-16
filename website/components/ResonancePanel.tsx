@@ -47,7 +47,6 @@ const TYPE_LABELS: Record<string, string> = {
 const ADS_DIMENSION_LABELS: Record<string, string> = {
   messagingAlignment: "Messaging Alignment",
   audienceTargeting: "Audience Targeting",
-  audienceDemographics: "Audience Demographics",
 };
 
 const ORGANIC_DIMENSION_LABELS: Record<string, string> = {
@@ -152,6 +151,14 @@ function ScorePanel({
           ))}
         </div>
       </div>
+
+      {/* Audience Demographics */}
+      {data.audienceDemographics && (
+        <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">
+          <h4 className="font-semibold text-slate-100 mb-2">Who Is Engaging</h4>
+          <p className="text-sm text-slate-400">{data.audienceDemographics}</p>
+        </div>
+      )}
 
       {/* Persona Fit */}
       <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-6">

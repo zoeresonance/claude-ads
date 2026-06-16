@@ -75,6 +75,7 @@ export interface ResonanceScoreResult {
   grade: Grade;
   summary: string;
   dimensions: Record<string, ResonanceDimension>;
+  audienceDemographics?: string;
   topPerformers: ResonancePerformer[];
   bottomPerformers: ResonancePerformer[];
   recommendations: ResonanceRecommendation[];
