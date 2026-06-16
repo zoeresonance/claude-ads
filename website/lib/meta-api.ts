@@ -84,9 +84,7 @@ export interface MetaAd {
   effective_status: string;
   creative?: {
     id: string;
-    name?: string;
     object_type?: string;
-    thumbnail_url?: string;
     body?: string;
     title?: string;
     call_to_action_type?: string;
