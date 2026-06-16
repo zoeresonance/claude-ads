@@ -269,28 +269,49 @@ function summarizeIgPost(post: IgMedia, index: number): string {
 
 function summarizeAdCreative(ad: MetaAd, index: number): string {
   const spec = ad.creative?.object_story_spec;
-  const body =
+  const feedBodies = ad.creative?.asset_feed_spec?.bodies?.map((b) => b.text).filter(Boolean) ?? [];
+  const primaryBody =
     ad.creative?.body ||
     spec?.link_data?.message ||
     spec?.video_data?.message ||
     spec?.photo_data?.caption ||
+    feedBodies[0] ||
     "(no copy)";
+
+  const feedTitles = ad.creative?.asset_feed_spec?.titles?.map((t) => t.text).filter(Boolean) ?? [];
   const headline =
     ad.creative?.title ||
     spec?.link_data?.description ||
     spec?.video_data?.title ||
+    feedTitles[0] ||
     "";
+
+  const feedCtas = ad.creative?.asset_feed_spec?.call_to_action_types ?? [];
   const cta =
     ad.creative?.call_to_action_type ||
     spec?.link_data?.call_to_action?.type ||
     spec?.video_data?.call_to_action?.type ||
+    feedCtas[0] ||
     "";
+
   const format = ad.creative?.object_type || "unknown format";
   const date = new Date(ad.created_time).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
   const parts: string[] = [`[${format}, ${ad.effective_status}, created ${date}]`];
-  parts.push(`Copy: "${body.slice(0, 250)}${body.length > 250 ? "…" : ""}"`);
-  if (headline) parts.push(`Headline: "${headline.slice(0, 150)}"`);
+
+  if (feedBodies.length > 1) {
+    parts.push(`Copy options (${feedBodies.length}):`);
+    feedBodies.forEach((b, i) => parts.push(`  ${i + 1}. "${b.slice(0, 250)}${b.length > 250 ? "…" : ""}"`));
+  } else {
+    parts.push(`Copy: "${primaryBody.slice(0, 250)}${primaryBody.length > 250 ? "…" : ""}"`);
+  }
+
+  if (feedTitles.length > 1) {
+    parts.push(`Headline options (${feedTitles.length}): ${feedTitles.map((t) => `"${t.slice(0, 100)}"`).join(", ")}`);
+  } else if (headline) {
+    parts.push(`Headline: "${headline.slice(0, 150)}"`);
+  }
+
   if (cta) parts.push(`CTA: ${cta.replace(/_/g, " ")}`);
 
   return `  Ad ${index + 1} ${parts.join(" | ")}`;
