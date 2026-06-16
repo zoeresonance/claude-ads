@@ -7,15 +7,17 @@ export const ADS_RESONANCE_SYSTEM_PROMPT = `You are an expert paid media strateg
 You will be given:
 1. A persona/audience audit document describing the target audience ("The One" and key personas)
 2. Meta paid ad performance data (campaigns, ad sets, ads, account-level and campaign-level metrics)
+3. Demographic breakdown data: who is actually clicking and engaging, broken down by age, gender, and region
 
 Your job is to analyze whether the paid ads are resonating with the described personas, based on:
-- CREATIVE RESONANCE: Do the ad formats and creative content (images, video, carousels) match what the persona responds to?
 - MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — reflect the persona's values, motivations, and communication preferences?
-- AUDIENCE TARGETING: Does the performance data (CTR, frequency, ROAS) suggest the right people are seeing the ads?
-- CONVERSION FIT: Do the campaign objectives and performance metrics align with how the persona makes decisions?
+- AUDIENCE TARGETING: Does the performance data (CTR, frequency, reach) and demographic breakdown suggest the right people are seeing and responding to the ads? This is the PRIMARY signal — strong audience targeting evidence should drive the overall score up even if other dimensions are mixed.
+- AUDIENCE DEMOGRAPHICS: Who is actually engaging? Do the age, gender, and location breakdowns match the described persona? Are the people clicking the right fit for the offer?
 
-CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
-Weight positive growth trajectory heavily. A brand improving CTR by 40% period-over-period is building resonance even if the absolute number is below industry average. Significant improvement (20%+) in a metric should meaningfully boost that dimension's score. Stagnation at a good number is less encouraging than strong growth from a lower base. When period-over-period data is provided, treat it as a primary signal: strong positive momentum can elevate a dimension score by 15-25 points even if the current absolute level is modest.
+CRITICAL SCORING PRINCIPLE — AUDIENCE PERFORMANCE IS THE DOMINANT SIGNAL:
+Audience Targeting score should carry the most weight in the overall score. Strong CTR, healthy frequency, and demographic alignment with the persona are the clearest proof that ads are resonating. A campaign with excellent audience engagement should score well overall even if messaging could be improved. Do NOT make assumptions about campaign effectiveness based on internal Meta campaign objective labels (like OUTCOME_TRAFFIC or LINK_CLICKS) — these are technical settings that the audience never sees and have no bearing on whether the message is landing.
+
+MOMENTUM MATTERS: Weight positive growth trajectory heavily. A brand improving CTR by 40% period-over-period is building resonance even if the absolute number is below industry average. Strong positive momentum (20%+) should meaningfully boost that dimension's score.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
 
@@ -24,21 +26,17 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "grade": <"A"|"B"|"C"|"D"|"F">,
   "summary": <string: 2-3 sentence diagnosis of how well the paid ads are landing with the target persona>,
   "dimensions": {
-    "creativeResonance": {
-      "score": <0-100>,
-      "finding": <string: do the ad creative formats and approaches match what the persona responds to>
-    },
     "messagingAlignment": {
       "score": <0-100>,
       "finding": <string: how well the ad copy and naming language matches the persona's resonant themes vs. off-putting themes>
     },
     "audienceTargeting": {
       "score": <0-100>,
-      "finding": <string: what CTR, frequency, and ROAS signals tell us about whether the right people are seeing the ads>
+      "finding": <string: what CTR, frequency, reach, and spend efficiency signals tell us about whether the right people are seeing and responding to the ads — this is the primary resonance signal>
     },
-    "conversionFit": {
+    "audienceDemographics": {
       "score": <0-100>,
-      "finding": <string: do the campaign objectives, spend allocation, and conversion metrics align with the persona's decision-making style>
+      "finding": <string: who is actually clicking and engaging — does the age, gender, and location breakdown match the described persona? Are the highest-CTR segments the right fit for the offer?>
     }
   },
   "topPerformers": [
@@ -334,8 +332,7 @@ export function buildAdsResonanceMessage(
 
   const adSections: string[] = [];
   const activeCampaigns = adData.campaigns.filter((c) => c.effective_status === "ACTIVE" || c.effective_status === "PAUSED");
-  const objectives = [...new Set(activeCampaigns.map((c) => c.objective))];
-  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length} | Objectives: ${objectives.join(", ")}`);
+  adSections.push(`Active/Paused Campaigns: ${activeCampaigns.length}`);
 
   if (adData.accountInsights) {
     const curr = adData.accountInsights;
@@ -375,8 +372,41 @@ export function buildAdsResonanceMessage(
     adSections.push(`\nAd Creative & Copy — ${windowSince} to ${windowUntil}: NONE — no active or paused ads in this window. Do not cite any specific ads in topPerformers, bottomPerformers, or recommendations.`);
   }
 
+  // Demographic breakdown
+  if (adData.ageGenderInsights?.length) {
+    const fmtNum = (s: string) => Math.round(parseFloat(s ?? "0")).toLocaleString();
+    const fmtPct = (clicks: string, impressions: string) => {
+      const c = parseFloat(clicks ?? "0");
+      const i = parseFloat(impressions ?? "0");
+      return i > 0 ? ((c / i) * 100).toFixed(2) + "%" : "N/A";
+    };
+
+    // Sort by clicks desc, take top segments
+    const sorted = [...adData.ageGenderInsights]
+      .sort((a, b) => parseFloat(b.clicks ?? "0") - parseFloat(a.clicks ?? "0"))
+      .slice(0, 20);
+
+    adSections.push(`\nAge & Gender Breakdown (who is clicking — sorted by clicks):`);
+    for (const row of sorted) {
+      adSections.push(`  ${row.gender ?? "?"} / ${row.age ?? "?"}: ${fmtNum(row.clicks)} clicks | ${fmtNum(row.impressions)} impressions | CTR: ${fmtPct(row.clicks, row.impressions)} | Reach: ${fmtNum(row.reach)} | Spend: $${parseFloat(row.spend ?? "0").toFixed(2)}`);
+    }
+  }
+
+  if (adData.regionInsights?.length) {
+    const sorted = [...adData.regionInsights]
+      .sort((a, b) => parseFloat(b.clicks ?? "0") - parseFloat(a.clicks ?? "0"))
+      .slice(0, 15);
+    adSections.push(`\nTop Regions (by clicks):`);
+    for (const row of sorted) {
+      const ctr = parseFloat(row.impressions ?? "0") > 0
+        ? ((parseFloat(row.clicks ?? "0") / parseFloat(row.impressions ?? "0")) * 100).toFixed(2) + "%"
+        : "N/A";
+      adSections.push(`  ${row.region ?? "Unknown"}: ${Math.round(parseFloat(row.clicks ?? "0")).toLocaleString()} clicks | CTR: ${ctr} | Reach: ${Math.round(parseFloat(row.reach ?? "0")).toLocaleString()}`);
+    }
+  }
+
   sections.push(`## PAID ADS DATA\n${adSections.join("\n")}`);
-  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Where period-over-period trend data is shown, weight it heavily — strong positive momentum should significantly boost scores even if absolute levels are modest. Return the complete JSON ads resonance analysis.`);
+  sections.push(`Please analyze how well this account's paid ads are resonating with the described personas. Audience Targeting and Audience Demographics are the primary signals — weight them heavily. Where period-over-period trend data is shown, weight it heavily — strong positive momentum should significantly boost scores. Return the complete JSON ads resonance analysis.`);
 
   return sections.join("\n\n");
 }

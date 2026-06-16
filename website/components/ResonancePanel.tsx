@@ -45,10 +45,9 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const ADS_DIMENSION_LABELS: Record<string, string> = {
-  creativeResonance: "Creative Resonance",
   messagingAlignment: "Messaging Alignment",
   audienceTargeting: "Audience Targeting",
-  conversionFit: "Conversion Fit",
+  audienceDemographics: "Audience Demographics",
 };
 
 const ORGANIC_DIMENSION_LABELS: Record<string, string> = {

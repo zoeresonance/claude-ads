@@ -153,6 +153,16 @@ export interface MetaCustomAudience {
   rule?: string;
 }
 
+export interface MetaDemographicBreakdown {
+  age?: string;
+  gender?: string;
+  region?: string;
+  impressions: string;
+  clicks: string;
+  spend: string;
+  reach: string;
+}
+
 export interface MetaFullData {
   account: MetaAccount;
   campaigns: MetaCampaign[];
@@ -163,6 +173,8 @@ export interface MetaFullData {
   adsetInsights: MetaAdSetInsights[];
   pixels: MetaPixel[];
   customAudiences: MetaCustomAudience[];
+  ageGenderInsights: MetaDemographicBreakdown[];
+  regionInsights: MetaDemographicBreakdown[];
   dateRange?: { since: string; until: string };
   fetchedAt: string;
 }
@@ -215,6 +227,8 @@ export async function fetchMetaData(
     adsetInsightsRaw,
     pixels,
     customAudiences,
+    ageGenderInsights,
+    regionInsights,
   ] = await Promise.all([
     // Account
     gql<MetaAccount>(`/${actId}`, {
@@ -289,6 +303,26 @@ export async function fetchMetaData(
       limit: "100",
       access_token: t,
     }).catch(() => []),
+
+    // Age + gender demographic breakdown
+    paginate<MetaDemographicBreakdown>(`/${actId}/insights`, {
+      fields: "impressions,clicks,spend,reach",
+      breakdowns: "age,gender",
+      time_range: timeRange,
+      level: "account",
+      limit: "100",
+      access_token: t,
+    }).catch(() => []),
+
+    // Region breakdown (top geo)
+    paginate<MetaDemographicBreakdown>(`/${actId}/insights`, {
+      fields: "impressions,clicks,spend,reach",
+      breakdowns: "region",
+      time_range: timeRange,
+      level: "account",
+      limit: "50",
+      access_token: t,
+    }).catch(() => []),
   ]);
 
   return {
@@ -301,6 +335,8 @@ export async function fetchMetaData(
     adsetInsights: adsetInsightsRaw,
     pixels,
     customAudiences,
+    ageGenderInsights,
+    regionInsights,
     dateRange: range,
     fetchedAt: new Date().toISOString(),
   };
