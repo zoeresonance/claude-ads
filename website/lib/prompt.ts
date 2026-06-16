@@ -64,7 +64,6 @@ export const SYSTEM_PROMPT = `You are a Meta Ads audit specialist with deep expe
 ### Creative Checks (M25–M32, M-CR1–M-CR4)
 - M25 (Critical): ≥3 formats active (static image, video, carousel)
 - M26 (High): ≥10 creatives for Advantage+ Sales, ≥5 for standard (25 diverse = 17% more conversions at 16% lower cost)
-- M27 (High): 9:16 vertical video for Reels/Stories
 - M28 (Critical): No CTR drop >20% over 14 days. Andromeda compressed lifespan to 2-4 weeks
 - M29 (High): Video hook rate <50% skip in first 3s
 - M30 (Medium): Top organic posts boosted as Spark ads
@@ -90,7 +89,6 @@ export const SYSTEM_PROMPT = `You are a Meta Ads audit specialist with deep expe
 - M37 (High): Campaign-level prospecting frequency <4.0 (7-day)
 - M38 (Medium): Age/gender/placement breakdowns reviewed monthly
 - M39 (Medium): UTM parameters on all ads
-- M40 (Medium): ≥1 active A/B test (Experiments)
 - M-ST1 (High): Daily budget ≥5× target CPA per ad set
 - M-ST2 (Medium): >80% of daily budget utilized
 
@@ -99,8 +97,6 @@ export const SYSTEM_PROMPT = `You are a Meta Ads audit specialist with deep expe
 - M20 (High): Custom Audiences refreshed within 180 days
 - M21 (Medium): Lookalike source ≥1,000 from high-value events
 - M22 (Medium): Advantage+ Audience tested vs manual
-- M23 (High): Purchasers/converters excluded from prospecting
-- M24 (High): Customer list uploaded for Custom Audience + Lookalike
 - M-TH1 (Low): Threads placement evaluated (GA Jan 2026, 400M+ MAU)
 
 ### Platform Changes (2025-2026)
