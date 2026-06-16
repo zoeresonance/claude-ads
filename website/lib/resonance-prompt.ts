@@ -100,6 +100,14 @@ Three momentum signals are provided for each organic metric. Apply this priority
 
 When all three point the same direction, that is strong evidence. When they conflict, YoY dominates.
 
+SCORE CALIBRATION — Content Performance and Messaging Alignment:
+These two dimensions should be scored generously when the evidence is directionally positive. Use this as a guide:
+- 75–90: Engagement/reach trending up AND messaging is broadly on-brand. This is the expected range for a healthy account doing things reasonably well.
+- 60–74: Flat trends OR some messaging inconsistency, but nothing alarming.
+- 45–59: Declining trends OR repeated off-brand content.
+- Below 45: Reserve for accounts with clear, sustained problems.
+Do NOT anchor to perfection. A brand with positive momentum and a coherent story that resonates with its audience should score in the 75–85 range, not the 50s. If your written finding describes something working well, the score must reflect that.
+
 IMPORTANT DATA CAVEAT: Instagram audience demographics (age, gender, location) are always LIFETIME aggregates, not date-range specific. They represent all followers ever accumulated. Do not interpret demographic shifts from these numbers as recent changes; treat them as a snapshot of the cumulative follower base. All other metrics respect the selected date range.
 
 Return ONLY valid JSON matching this exact schema — no markdown, no explanation:
