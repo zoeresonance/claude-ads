@@ -344,6 +344,8 @@ export function buildAdsResonanceMessage(
     const prev = previousInsights;
     adSections.push(`\nAccount-Level Performance (current period vs prior equivalent period):`);
     adSections.push(`  Spend: $${parseFloat(curr.spend ?? "0").toLocaleString()}${prev ? ` (prior: $${parseFloat(prev.spend ?? "0").toLocaleString()})` : ""}`);
+    adSections.push(`  ${metricTrend(curr.reach, prev?.reach, "Reach")}`);
+    adSections.push(`  ${metricTrend(curr.impressions, prev?.impressions, "Impressions")}`);
 
     const currCtr = parseFloat(curr.ctr ?? "0") * 100;
     const prevCtr = prev ? parseFloat(prev.ctr ?? "0") * 100 : undefined;
