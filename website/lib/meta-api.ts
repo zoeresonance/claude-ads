@@ -516,12 +516,17 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Valid FB page insights in Meta API v21 — page_impressions/engaged_users/fan_adds are deprecated
-      Promise.all([
-        "page_impressions_unique",
-        "page_post_engagements",
-        "page_impressions",
-      ].map(fetchFbMetric)).then((results) => results.flat()),
+      // Valid FB page insights in Meta API v21 — fetch all in one call to avoid silent per-metric failures
+      gql<{ data: PageInsightValue[] }>(
+        `/${facebookPageId}/insights`,
+        {
+          metric: "page_impressions_unique,page_post_engagements,page_impressions",
+          period: "day",
+          since: sinceTs,
+          until: untilTs,
+          access_token: pageToken,
+        }
+      ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]),
 
       // Fetch most-recent FB posts then filter client-side.
       // since/until on /posts returns unreliable results; fetching without
@@ -651,14 +656,10 @@ export async function fetchOrganicInsightsForPeriod(
   };
 
   const [fbInsights, igInsights] = await Promise.all([
-    Promise.all(
-      ["page_impressions_unique", "page_post_engagements"].map((metric) =>
-        gql<{ data: PageInsightValue[] }>(
-          `/${facebookPageId}/insights`,
-          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
-        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
-      )
-    ).then((r) => r.flat()),
+    gql<{ data: PageInsightValue[] }>(
+      `/${facebookPageId}/insights`,
+      { metric: "page_impressions_unique,page_post_engagements", period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+    ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]),
 
     Promise.all(
       ["reach", "follower_count"].map((metric) =>
