@@ -516,17 +516,26 @@ export async function fetchOrganicData(
         { fields: "id,name,fan_count,followers_count", access_token: t }
       ).catch(() => null),
 
-      // Valid FB page insights in Meta API v21 — fetch all in one call to avoid silent per-metric failures
-      gql<{ data: PageInsightValue[] }>(
-        `/${facebookPageId}/insights`,
-        {
-          metric: "page_impressions_unique,page_post_engagements,page_impressions",
-          period: "day",
-          since: sinceTs,
-          until: untilTs,
-          access_token: pageToken,
+      // FB page insights — fetched individually; page_impressions_unique is a fallback alias for page_impressions
+      Promise.all([
+        "page_impressions_unique",
+        "page_post_engagements",
+        "page_impressions",
+      ].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${facebookPageId}/insights`,
+          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )).then((results) => {
+        const flat = results.flat();
+        // If page_impressions_unique returned no data, alias page_impressions as a stand-in for reach
+        const hasUnique = flat.some((d) => d.name === "page_impressions_unique" && d.values?.length > 0);
+        if (!hasUnique) {
+          const impressions = flat.find((d) => d.name === "page_impressions");
+          if (impressions) flat.push({ ...impressions, name: "page_impressions_unique" });
         }
-      ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]),
+        return flat;
+      }),
 
       // Fetch most-recent FB posts then filter client-side.
       // since/until on /posts returns unreliable results; fetching without
@@ -656,10 +665,22 @@ export async function fetchOrganicInsightsForPeriod(
   };
 
   const [fbInsights, igInsights] = await Promise.all([
-    gql<{ data: PageInsightValue[] }>(
-      `/${facebookPageId}/insights`,
-      { metric: "page_impressions_unique,page_post_engagements", period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
-    ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[]),
+    Promise.all(
+      ["page_impressions_unique", "page_post_engagements", "page_impressions"].map((metric) =>
+        gql<{ data: PageInsightValue[] }>(
+          `/${facebookPageId}/insights`,
+          { metric, period: "day", since: sinceTs, until: untilTs, access_token: pageToken }
+        ).then((r) => r.data ?? []).catch(() => [] as PageInsightValue[])
+      )
+    ).then((results) => {
+      const flat = results.flat();
+      const hasUnique = flat.some((d) => d.name === "page_impressions_unique" && d.values?.length > 0);
+      if (!hasUnique) {
+        const impressions = flat.find((d) => d.name === "page_impressions");
+        if (impressions) flat.push({ ...impressions, name: "page_impressions_unique" });
+      }
+      return flat;
+    }),
 
     Promise.all(
       ["reach", "follower_count"].map((metric) =>
