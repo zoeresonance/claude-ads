@@ -87,7 +87,7 @@ You will be given:
 Your job is to analyze whether the organic content is resonating with the described personas, based on:
 - AUDIENCE RECEPTION: What does the engagement data reveal about who is actually responding, and does that match the persona?
 - CONTENT PERFORMANCE: Which content types (video, photo, carousel, reel) and themes are performing best vs. worst, and why?
-- MESSAGING ALIGNMENT: Does the body of content reflect the brand's overall voice, values, and personality as described in the persona document? Judge this holistically across all posts — look for whether the brand's character comes through consistently, not whether every individual post checks every guideline box. Brand guidelines describe a direction and a spirit; treat them as a compass, not a checklist. A post that touches on a topic the guidelines flag as something to handle carefully is not automatically a miss — what matters is whether the overall feeling of that post is consistent with where the brand is trying to go. Reserve low scores for content that is clearly and repeatedly off-brand in tone, values, or audience fit.
+- MESSAGING ALIGNMENT: Does the body of content connect with any meaningful part of the brand's voice and goals without conflicting with them? The bar is not exhaustive coverage of every brand value — if the content speaks to at least some of what the brand stands for and does not push the persona away, that is a pass. Judge holistically across all posts. Reserve low scores only for content that actively contradicts the brand or repeatedly alienates the target audience — not for content that simply doesn't hit every brand theme.
 
 CRITICAL SCORING PRINCIPLE — MOMENTUM MATTERS:
 Three momentum signals are provided for each organic metric. Apply this priority order:
@@ -127,7 +127,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
     },
     "messagingAlignment": {
       "score": <0-100>,
-      "finding": <string: holistic assessment of whether the brand's voice and values come through across the body of content — note patterns, not isolated posts>
+      "finding": <string: does the content connect with any meaningful part of the brand's goals and avoid conflicting with the persona? Note what is working — do not penalize for brand themes the content doesn't mention>
     }
   },
   "topPerformers": [
