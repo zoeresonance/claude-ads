@@ -10,7 +10,7 @@ You will be given:
 3. Demographic breakdown data: who is actually clicking and engaging, broken down by age, gender, and region
 
 Your job is to analyze whether the paid ads are resonating with the described personas, based on:
-- MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — reflect the persona's values, motivations, and communication preferences?
+- MESSAGING ALIGNMENT: Does the ad copy — body text, headlines, and CTAs — align with any part of the brand's values and goals without conflicting with them? The bar is not exhaustive coverage of every brand value. If the messaging speaks to at least one meaningful aspect of the persona's world and does not contradict the brand, that is a pass. Deduct only when messaging actively conflicts with the brand or persona — not when it simply omits some themes.
 - AUDIENCE TARGETING: Does the performance data (CTR, frequency, reach) and demographic breakdown suggest the right people are seeing and responding to the ads? This is the PRIMARY signal — strong audience targeting evidence should drive the overall score up even if other dimensions are mixed.
 - AUDIENCE DEMOGRAPHICS (informational only, does not affect score): Who is actually engaging? Describe the age, gender, and location breakdown and assess whether it matches the persona — but do not use this as a scoring input.
 
@@ -28,7 +28,7 @@ Return ONLY valid JSON matching this exact schema — no markdown, no explanatio
   "dimensions": {
     "messagingAlignment": {
       "score": <0-100>,
-      "finding": <string: how well the ad copy and naming language matches the persona's resonant themes vs. off-putting themes>
+      "finding": <string: does the ad copy connect with any meaningful part of the brand's goals and avoid conflicting with the persona? Note what it gets right — do not penalize for themes it doesn't mention>
     },
     "audienceTargeting": {
       "score": <0-100>,
