@@ -240,7 +240,8 @@ function ScorePanel({
 }
 
 export default function ResonancePanel({ result, clientName, performance }: Props) {
-  const [active, setActive] = useState<"ads" | "organic">("ads");
+  const hasAds = !!result.ads;
+  const [active, setActive] = useState<"ads" | "organic">(hasAds ? "ads" : "organic");
   const printRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -267,42 +268,46 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
           <h2 className="text-base font-bold text-white">Resonance Score</h2>
           <span className="text-xs text-slate-400 bg-[#2a2a2a] px-2 py-0.5 rounded-full">{clientName}</span>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          {(["ads", "organic"] as const).map((tab) => {
-            const data = result[tab];
-            const isActive = active === tab;
-            const gradeClass = GRADE_COLORS[data.grade] ?? GRADE_COLORS.C;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActive(tab)}
-                className={`rounded-xl border-2 p-3 text-left transition-all ${
-                  isActive ? "border-brand-300 bg-[#0d2020]" : "border-[#2d2d2d] bg-[#252525] hover:border-[#444]"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-slate-300">
-                    {tab === "ads" ? "📣 Ads" : "🌱 Organic"}
-                  </span>
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${gradeClass}`}>
-                    {data.grade}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-white">
-                  {data.score}
-                  <span className="text-xs font-normal text-slate-400 ml-1">/ 100</span>
-                </div>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  {tab === "ads" ? "Paid campaigns" : "FB & IG posts"}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {hasAds ? (
+          <div className="grid grid-cols-2 gap-2">
+            {(["ads", "organic"] as const).map((tab) => {
+              const data = result[tab]!;
+              const isActive = active === tab;
+              const gradeClass = GRADE_COLORS[data.grade] ?? GRADE_COLORS.C;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActive(tab)}
+                  className={`rounded-xl border-2 p-3 text-left transition-all ${
+                    isActive ? "border-brand-300 bg-[#0d2020]" : "border-[#2d2d2d] bg-[#252525] hover:border-[#444]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-slate-300">
+                      {tab === "ads" ? "📣 Ads" : "🌱 Organic"}
+                    </span>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${gradeClass}`}>
+                      {data.grade}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-white">
+                    {data.score}
+                    <span className="text-xs font-normal text-slate-400 ml-1">/ 100</span>
+                  </div>
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {tab === "ads" ? "Paid campaigns" : "FB & IG posts"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">No ad account connected — showing organic resonance only.</p>
+        )}
       </div>
 
       {/* Active panel */}
-      {active === "ads" ? (
+      {active === "ads" && result.ads ? (
         <>
           <ScorePanel
             data={result.ads}

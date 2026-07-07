@@ -1,31 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getAllClients } from "@/lib/clients";
 
 const CLIENTS_DIR = path.join(process.cwd(), "clients");
 
 export async function GET() {
-  if (!fs.existsSync(CLIENTS_DIR)) {
-    return NextResponse.json({ clients: [] });
-  }
-
-  const clients: { name: string; adAccountId: string }[] = [];
-
-  for (const entry of fs.readdirSync(CLIENTS_DIR, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const configPath = path.join(CLIENTS_DIR, entry.name, "config.json");
-    if (!fs.existsSync(configPath)) continue;
-    try {
-      const raw = JSON.parse(fs.readFileSync(configPath, "utf8"));
-      if (raw.name && raw.adAccountId) {
-        clients.push({ name: raw.name, adAccountId: raw.adAccountId });
-      }
-    } catch {
-      // malformed config — skip
-    }
-  }
-
-  clients.sort((a, b) => a.name.localeCompare(b.name));
+  const clients = getAllClients().map((c) => ({
+    id: c.id,
+    name: c.name,
+    adAccountId: c.adAccountId,
+  }));
   return NextResponse.json({ clients });
 }
 
@@ -35,9 +20,6 @@ export async function POST(req: NextRequest) {
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json({ error: "Client name is required." }, { status: 400 });
-    }
-    if (!adAccountId || typeof adAccountId !== "string" || adAccountId.trim().length === 0) {
-      return NextResponse.json({ error: "Ad Account ID is required." }, { status: 400 });
     }
 
     // Sanitize name to a safe directory name (letters, numbers, spaces, hyphens, underscores only)
@@ -61,9 +43,9 @@ export async function POST(req: NextRequest) {
 
     const config: Record<string, string> = {
       name: safeName,
-      adAccountId: adAccountId.trim(),
       auditDoc: "audit.md",
     };
+    if (typeof adAccountId === "string" && adAccountId.trim()) config.adAccountId = adAccountId.trim();
     if (facebookPageId?.trim()) config.facebookPageId = facebookPageId.trim();
     if (instagramAccountId?.trim()) config.instagramAccountId = instagramAccountId.trim();
 
@@ -76,7 +58,7 @@ export async function POST(req: NextRequest) {
       fs.writeFileSync(path.join(clientDir, "audit.md"), `# ${safeName} — Audience & Persona Audit\n\nAdd your persona document here.\n`);
     }
 
-    return NextResponse.json({ success: true, name: safeName, adAccountId: adAccountId.trim() });
+    return NextResponse.json({ success: true, id: safeName, name: safeName, adAccountId: config.adAccountId });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: `Failed to create client: ${msg}` }, { status: 500 });

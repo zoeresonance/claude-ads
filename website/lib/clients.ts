@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 
 export interface ClientConfig {
+  id: string;
   name: string;
-  adAccountId: string;
+  adAccountId?: string;
   facebookPageId: string;
   instagramAccountId: string;
   auditDoc: string;
@@ -13,9 +14,13 @@ export interface ClientConfig {
 
 const CLIENTS_DIR = path.join(process.cwd(), "clients");
 
-function loadClients(): Map<string, ClientConfig> {
-  const map = new Map<string, ClientConfig>();
-  if (!fs.existsSync(CLIENTS_DIR)) return map;
+function normalizeAccountId(accountId: string): string {
+  return accountId.startsWith("act_") ? accountId : `act_${accountId}`;
+}
+
+function loadClients(): ClientConfig[] {
+  const clients: ClientConfig[] = [];
+  if (!fs.existsSync(CLIENTS_DIR)) return clients;
 
   for (const entry of fs.readdirSync(CLIENTS_DIR, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
@@ -27,26 +32,32 @@ function loadClients(): Map<string, ClientConfig> {
       const clientDir = path.join(CLIENTS_DIR, entry.name);
       const config: ClientConfig = {
         ...raw,
+        id: entry.name,
+        adAccountId: raw.adAccountId?.trim() ? raw.adAccountId.trim() : undefined,
         clientDir,
         auditDocPath: path.join(clientDir, raw.auditDoc ?? "audit.md"),
       };
-      if (config.adAccountId) {
-        const normalized = config.adAccountId.startsWith("act_")
-          ? config.adAccountId
-          : `act_${config.adAccountId}`;
-        map.set(normalized, config);
-      }
+      clients.push(config);
     } catch {
       // malformed config — skip
     }
   }
-  return map;
+  return clients;
+}
+
+export function getAllClients(): ClientConfig[] {
+  return loadClients().sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function getClientById(id: string): ClientConfig | null {
+  return loadClients().find((c) => c.id === id) ?? null;
 }
 
 export function getClientForAccount(accountId: string): ClientConfig | null {
-  const normalized = accountId.startsWith("act_") ? accountId : `act_${accountId}`;
-  const clients = loadClients();
-  return clients.get(normalized) ?? null;
+  const normalized = normalizeAccountId(accountId);
+  return (
+    loadClients().find((c) => c.adAccountId && normalizeAccountId(c.adAccountId) === normalized) ?? null
+  );
 }
 
 export function readAuditDoc(config: ClientConfig): string {
