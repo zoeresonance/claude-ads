@@ -36,7 +36,7 @@ import {
   buildAdsResonanceMessage,
   buildOrganicResonanceMessage,
 } from "@/lib/resonance-prompt";
-import { getClientForAccount, readAuditDoc } from "@/lib/clients";
+import { getClientById, readAuditDoc } from "@/lib/clients";
 import type { ResonanceResult, ResonanceScoreResult } from "@/lib/types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY ?? "" });
@@ -72,20 +72,20 @@ function stripMarkdown(raw: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const { accountId, dateRange } = await req.json();
+    const { clientId, dateRange } = await req.json();
     const token = process.env.META_SYSTEM_TOKEN;
 
     if (!token) {
       return NextResponse.json({ error: "META_SYSTEM_TOKEN is not configured." }, { status: 500 });
     }
-    if (!accountId) {
-      return NextResponse.json({ error: "Account ID is required." }, { status: 400 });
+    if (!clientId) {
+      return NextResponse.json({ error: "Client ID is required." }, { status: 400 });
     }
 
-    const client = getClientForAccount(accountId);
+    const client = getClientById(clientId);
     if (!client) {
       return NextResponse.json(
-        { error: "No client config found for this account. Add a config in website/clients/." },
+        { error: "No client config found. Add a config in website/clients/." },
         { status: 404 }
       );
     }
@@ -104,31 +104,39 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch ad data + organic data + previous period + YoY comparisons in parallel
+    const hasAdAccount = !!client.adAccountId;
+
+    // Fetch ad data (if an ad account is connected) + organic data + previous period + YoY comparisons in parallel
     const prevRange = previousPeriod(dateRange as DateRange | undefined);
     const yoyRange = yoyPeriod(dateRange as DateRange | undefined);
     const [adData, organic, previousInsights, previousOrganic, yoyOrganic] = await Promise.all([
-      fetchMetaData(token, accountId, dateRange).catch((err) => {
-        throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
-      }),
+      hasAdAccount
+        ? fetchMetaData(token, client.adAccountId!, dateRange).catch((err) => {
+            throw new Error(`Ad data: ${err instanceof Error ? err.message : "fetch failed"}`);
+          })
+        : Promise.resolve(null),
       fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange).catch((err) => {
         throw new Error(`Organic data: ${err instanceof Error ? err.message : "fetch failed"}`);
       }),
-      fetchInsightsForPeriod(token, accountId, prevRange).catch(() => null),
+      hasAdAccount ? fetchInsightsForPeriod(token, client.adAccountId!, prevRange).catch(() => null) : Promise.resolve(null),
       fetchOrganicInsightsForPeriod(token, client.facebookPageId, client.instagramAccountId, prevRange).catch(() => null),
       fetchOrganicInsightsForPeriod(token, client.facebookPageId, client.instagramAccountId, yoyRange).catch(() => null),
     ]);
 
-    // Run both resonance analyses in parallel
-    const [adsRaw, organicRaw] = await Promise.all([
-      generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData, previousInsights ?? undefined)),
+    // Run the organic resonance analysis, and the ads analysis only when an ad account is connected
+    let adsResult: ResonanceScoreResult | undefined;
+    const [organicRaw] = await Promise.all([
       generateWithRetry(ORGANIC_RESONANCE_SYSTEM_PROMPT, buildOrganicResonanceMessage(auditDoc, organic, previousOrganic ?? undefined, yoyOrganic ?? undefined)),
+      hasAdAccount && adData
+        ? generateWithRetry(ADS_RESONANCE_SYSTEM_PROMPT, buildAdsResonanceMessage(auditDoc, adData, previousInsights ?? undefined)).then((raw) => {
+            adsResult = JSON.parse(stripMarkdown(raw));
+          })
+        : Promise.resolve(undefined),
     ]);
 
-    const adsResult: ResonanceScoreResult = JSON.parse(stripMarkdown(adsRaw));
     const organicResult: ResonanceScoreResult = JSON.parse(stripMarkdown(organicRaw));
 
-    const result: ResonanceResult = { ads: adsResult, organic: organicResult };
+    const result: ResonanceResult = adsResult ? { ads: adsResult, organic: organicResult } : { organic: organicResult };
 
     return NextResponse.json({ result, clientName: client.name });
   } catch (error) {

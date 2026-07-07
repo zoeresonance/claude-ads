@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import DateRangePicker, { DateRange, defaultDateRange } from "./DateRangePicker";
 
 interface Client {
+  id: string;
   name: string;
-  adAccountId: string;
+  adAccountId?: string;
 }
 
 interface Props {
-  onAnalyze: (token: string, accountId: string, dateRange: DateRange) => void;
+  onAnalyze: (clientId: string, accountId: string | null, dateRange: DateRange) => void;
   loading: boolean;
 }
 
@@ -34,7 +35,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error);
-      onAdded({ name: data.name, adAccountId: data.adAccountId });
+      onAdded({ id: data.id, name: data.name, adAccountId: data.adAccountId });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create client");
     } finally {
@@ -61,12 +62,12 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-1">
-            Ad Account ID <span className="text-red-400">*</span>
+            Ad Account ID
+            <span className="ml-1 text-slate-500 font-normal">(optional — leave blank for organic-only)</span>
           </label>
           <input
             value={adAccountId}
             onChange={(e) => setAdAccountId(e.target.value)}
-            required
             placeholder="e.g. act_123456789"
             className="w-full text-sm border border-[#2d2d2d] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-300 bg-[#2a2a2a] text-slate-100 placeholder-slate-500"
           />
@@ -118,7 +119,8 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
           {saving ? "Creating…" : "Create Client"}
         </button>
         <p className="text-xs text-slate-400">
-          Facebook Page ID and Instagram Account ID are needed for Resonance Score.
+          Ad Account ID enables the Health Score audit and Ads Resonance. Without it, only the
+          organic Resonance Score runs (requires Facebook Page ID and Instagram Account ID).
         </p>
       </div>
     </form>
@@ -144,7 +146,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
       .then((json) => {
         if (json.error) throw new Error(json.error);
         setClients(json.clients);
-        if (json.clients.length > 0 && !selectedId) setSelectedId(json.clients[0].adAccountId);
+        if (json.clients.length > 0 && !selectedId) setSelectedId(json.clients[0].id);
       })
       .catch((err) => setFetchError(err.message))
       .finally(() => setFetchingClients(false));
@@ -152,14 +154,15 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
 
   function handleClientAdded(client: Client) {
     setClients((prev) => [...prev, client].sort((a, b) => a.name.localeCompare(b.name)));
-    setSelectedId(client.adAccountId);
+    setSelectedId(client.id);
     setShowAddForm(false);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedId) return;
-    onAnalyze("", selectedId, dateRange);
+    const client = clients.find((c) => c.id === selectedId);
+    onAnalyze(selectedId, client?.adAccountId ?? null, dateRange);
   }
 
   return (
@@ -197,8 +200,9 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             className="w-full text-sm border border-[#2d2d2d] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-transparent text-slate-100 bg-[#2a2a2a]"
           >
             {clients.map((c) => (
-              <option key={c.adAccountId} value={c.adAccountId}>
+              <option key={c.id} value={c.id}>
                 {c.name}
+                {!c.adAccountId ? " (organic only)" : ""}
               </option>
             ))}
           </select>

@@ -35,19 +35,35 @@ export default function Home() {
   const [resonanceError, setResonanceError] = useState<string | null>(null);
   const [performanceData, setPerformanceData] = useState<PerformanceData | null>(null);
   const [account, setAccount] = useState<AccountMeta | null>(null);
+  const [organicOnly, setOrganicOnly] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ResultTab>("health");
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
+  const [activeDateRange, setActiveDateRange] = useState<DateRange | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  async function handleConnect(token: string, accountId: string, dateRange: DateRange) {
-    setLoading(true);
+  async function handleConnect(clientId: string, accountId: string | null, dateRange: DateRange) {
     setError(null);
     setResult(null);
     setAccount(null);
     setResonanceResult(null);
     setResonanceError(null);
     setPerformanceData(null);
-    setActiveTab("health");
+    setActiveTab(accountId ? "health" : "resonance");
+    setOrganicOnly(!accountId);
+    setActiveClientId(clientId);
+    setActiveDateRange(dateRange);
+
+    if (!accountId) {
+      // No ad account connected for this client — skip the paid audit entirely
+      // and run the organic-only resonance score instead.
+      fetchResonance(clientId, dateRange);
+      fetchPerformance(clientId, dateRange);
+      setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+      return;
+    }
+
+    setLoading(true);
     setLoadingMsg("Fetching Meta account data…");
 
     try {
@@ -64,8 +80,8 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
       // Kick off resonance + performance in the background (non-blocking)
-      fetchResonance(accountId, dateRange);
-      fetchPerformance(accountId, dateRange);
+      fetchResonance(clientId, dateRange);
+      fetchPerformance(clientId, dateRange);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -74,14 +90,14 @@ export default function Home() {
     }
   }
 
-  async function fetchResonance(accountId: string, dateRange: DateRange) {
+  async function fetchResonance(clientId: string, dateRange: DateRange) {
     setResonanceLoading(true);
     setResonanceError(null);
     try {
       const res = await fetch("/api/resonance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId, dateRange }),
+        body: JSON.stringify({ clientId, dateRange }),
       });
       const data = await res.json();
       if (res.status === 404) return; // No client config — silently skip
@@ -97,12 +113,12 @@ export default function Home() {
     }
   }
 
-  async function fetchPerformance(accountId: string, dateRange: DateRange) {
+  async function fetchPerformance(clientId: string, dateRange: DateRange) {
     try {
       const res = await fetch("/api/performance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId, dateRange }),
+        body: JSON.stringify({ clientId, dateRange }),
       });
       const data = await res.json();
       if (!res.ok || data.error) return; // silently skip on error
@@ -145,11 +161,15 @@ export default function Home() {
     setPerformanceData(null);
     setError(null);
     setAccount(null);
+    setOrganicOnly(false);
+    setActiveClientId(null);
+    setActiveDateRange(null);
     setActiveTab("health");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const hasResonance = resonanceResult !== null || resonanceLoading || resonanceError !== null;
+  const hasResult = result !== null || (organicOnly && hasResonance);
 
   return (
     <div className="min-h-screen bg-[#111111]">
@@ -208,7 +228,7 @@ export default function Home() {
         )}
 
         {/* Input forms */}
-        {!loading && !result && (
+        {!loading && !hasResult && (
           <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm overflow-hidden">
             <div className="flex border-b border-[#2d2d2d]">
               <button
@@ -288,10 +308,41 @@ export default function Home() {
           </div>
         )}
 
+        {/* Organic-only summary bar */}
+        {organicOnly && hasResult && !loading && (
+          <div className="bg-brand-dark text-white rounded-2xl px-6 py-4 flex flex-wrap items-center gap-4">
+            <div>
+              <p className="text-brand-300 text-xs font-medium">Client</p>
+              <p className="font-bold">{resonanceClientName || "—"}</p>
+            </div>
+            <div className="h-8 w-px bg-slate-700 hidden sm:block" />
+            <div>
+              <p className="text-brand-300 text-xs font-medium">Mode</p>
+              <p className="font-bold">Organic only — no ad account connected</p>
+            </div>
+            {activeDateRange && (
+              <div>
+                <p className="text-brand-300 text-xs font-medium">Date Range</p>
+                <p className="font-bold">
+                  {activeDateRange.since} → {activeDateRange.until}
+                </p>
+              </div>
+            )}
+            <div className="ml-auto flex items-center gap-3">
+              <button
+                onClick={handleReset}
+                className="text-xs text-slate-400 hover:text-white underline"
+              >
+                ← New analysis
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Results tabs */}
-        {result && !loading && (
+        {hasResult && !loading && (
           <div ref={resultsRef}>
-            {hasResonance && (
+            {result && hasResonance && (
               <div className="flex gap-1 mb-4 bg-[#1e1e1e] border border-[#2d2d2d] rounded-xl p-1 w-fit">
                 <button
                   onClick={() => setActiveTab("health")}
@@ -318,7 +369,7 @@ export default function Home() {
               </div>
             )}
 
-            {activeTab === "health" && (
+            {activeTab === "health" && result && (
               <ResultsDashboard result={result} onReset={handleReset} performance={performanceData ?? undefined} />
             )}
 
@@ -339,9 +390,9 @@ export default function Home() {
                       <p className="text-red-300 font-semibold text-sm">Resonance analysis failed</p>
                       <p className="text-red-400 text-sm mt-1">{resonanceError}</p>
                     </div>
-                    {account && (
+                    {activeClientId && activeDateRange && (
                       <button
-                        onClick={() => fetchResonance(account.id, account.dateRange!)}
+                        onClick={() => fetchResonance(activeClientId, activeDateRange)}
                         disabled={resonanceLoading}
                         className="shrink-0 text-sm font-medium text-red-300 border border-red-800 bg-red-950/40 rounded-lg px-3 py-1.5 hover:bg-red-950/60 disabled:opacity-50 transition-colors"
                       >

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchDailyAdsInsights, fetchOrganicData } from "@/lib/meta-api";
-import { getClientForAccount } from "@/lib/clients";
+import { getClientById } from "@/lib/clients";
 import type { PerformanceData, DailyMetric } from "@/lib/types";
 import type { PageInsightValue, DateRange } from "@/lib/meta-api";
 
@@ -27,16 +27,18 @@ function mergeSeries(...series: DailyMetric[][]): DailyMetric[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const { accountId, dateRange } = await req.json();
+    const { clientId, dateRange } = await req.json();
     const token = process.env.META_SYSTEM_TOKEN;
 
     if (!token) return NextResponse.json({ error: "META_SYSTEM_TOKEN not configured." }, { status: 500 });
-    if (!accountId) return NextResponse.json({ error: "Account ID is required." }, { status: 400 });
+    if (!clientId) return NextResponse.json({ error: "Client ID is required." }, { status: 400 });
 
-    const client = getClientForAccount(accountId);
+    const client = getClientById(clientId);
 
     const [dailyAds, organic] = await Promise.all([
-      fetchDailyAdsInsights(token, accountId, dateRange as DateRange | undefined),
+      client?.adAccountId
+        ? fetchDailyAdsInsights(token, client.adAccountId, dateRange as DateRange | undefined)
+        : Promise.resolve([]),
       client?.facebookPageId && client?.instagramAccountId
         ? fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange as DateRange | undefined)
         : Promise.resolve(null),

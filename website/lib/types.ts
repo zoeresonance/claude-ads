@@ -88,7 +88,7 @@ export interface ResonanceScoreResult {
 }
 
 export interface ResonanceResult {
-  ads: ResonanceScoreResult;
+  ads?: ResonanceScoreResult;
   organic: ResonanceScoreResult;
 }
 
