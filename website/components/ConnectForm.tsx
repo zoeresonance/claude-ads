@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DateRangePicker, { DateRange, defaultDateRange } from "./DateRangePicker";
 
 interface Client {
@@ -14,7 +14,7 @@ interface Props {
   loading: boolean;
 }
 
-function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
+function AddClientForm({ onCreated }: { onCreated: (client: Client, deployPending: boolean) => void }) {
   const [name, setName] = useState("");
   const [adAccountId, setAdAccountId] = useState("");
   const [facebookPageId, setFacebookPageId] = useState("");
@@ -35,7 +35,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error);
-      onAdded({ id: data.id, name: data.name, adAccountId: data.adAccountId });
+      onCreated({ id: data.id, name: data.name, adAccountId: data.adAccountId }, !!data.deployPending);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create client");
     } finally {
@@ -127,6 +127,9 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
   );
 }
 
+const POLL_INTERVAL_MS = 5000;
+const MAX_POLL_ATTEMPTS = 30; // ~2.5 minutes
+
 export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -134,21 +137,30 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange());
   const [showAddForm, setShowAddForm] = useState(false);
+  const [pendingClient, setPendingClient] = useState<Client | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     loadClients();
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    };
   }, []);
 
-  function loadClients() {
+  function loadClients(): Promise<Client[]> {
     setFetchingClients(true);
-    fetch("/api/clients")
+    return fetch("/api/clients")
       .then((r) => r.json())
       .then((json) => {
         if (json.error) throw new Error(json.error);
         setClients(json.clients);
         if (json.clients.length > 0 && !selectedId) setSelectedId(json.clients[0].id);
+        return json.clients as Client[];
       })
-      .catch((err) => setFetchError(err.message))
+      .catch((err) => {
+        setFetchError(err.message);
+        return [];
+      })
       .finally(() => setFetchingClients(false));
   }
 
@@ -156,6 +168,34 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
     setClients((prev) => [...prev, client].sort((a, b) => a.name.localeCompare(b.name)));
     setSelectedId(client.id);
     setShowAddForm(false);
+  }
+
+  function handleClientCreated(client: Client, deployPending: boolean) {
+    if (!deployPending) {
+      handleClientAdded(client);
+      return;
+    }
+
+    // The client was committed to GitHub but needs a Vercel redeploy before it's visible —
+    // poll the client list until it shows up, then select it automatically.
+    setShowAddForm(false);
+    setPendingClient(client);
+    if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+
+    let attempts = 0;
+    pollTimerRef.current = setInterval(async () => {
+      attempts += 1;
+      const list = await loadClients();
+      const found = list.some((c) => c.id === client.id);
+      if (found || attempts >= MAX_POLL_ATTEMPTS) {
+        if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+        if (found) {
+          setSelectedId(client.id);
+          setPendingClient(null);
+        }
+      }
+    }, POLL_INTERVAL_MS);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -186,6 +226,16 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           <p className="text-sm text-slate-400 animate-pulse">Loading clients…</p>
         )}
 
+        {pendingClient && (
+          <p className="text-sm text-amber-300 bg-amber-950/30 border border-amber-800 rounded-lg px-3 py-2 flex items-center gap-2">
+            <svg className="animate-spin h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            Deploying &ldquo;{pendingClient.name}&rdquo;… this can take about a minute. It&apos;ll appear below automatically.
+          </p>
+        )}
+
         {fetchError && (
           <p className="text-sm text-red-400 bg-red-950/40 border border-red-800 rounded-lg px-3 py-2">
             {fetchError}
@@ -214,7 +264,7 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
           </p>
         )}
 
-        {showAddForm && <AddClientForm onAdded={handleClientAdded} />}
+        {showAddForm && <AddClientForm onCreated={handleClientCreated} />}
       </div>
 
       {/* Date range */}

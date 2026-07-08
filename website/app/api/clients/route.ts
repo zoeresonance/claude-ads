@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { getAllClients } from "@/lib/clients";
+import { githubConfigured, githubFileExists, commitFileToGithub } from "@/lib/github";
 
 const CLIENTS_DIR = path.join(process.cwd(), "clients");
 
@@ -28,19 +29,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Client name contains no valid characters." }, { status: 400 });
     }
 
-    const clientDir = path.join(CLIENTS_DIR, safeName);
-
-    // Prevent path traversal — ensure the resolved path stays inside CLIENTS_DIR
-    if (!clientDir.startsWith(CLIENTS_DIR + path.sep) && clientDir !== CLIENTS_DIR) {
-      return NextResponse.json({ error: "Invalid client name." }, { status: 400 });
-    }
-
-    if (fs.existsSync(clientDir)) {
-      return NextResponse.json({ error: `A client named "${safeName}" already exists.` }, { status: 409 });
-    }
-
-    fs.mkdirSync(clientDir, { recursive: true });
-
     const config: Record<string, string> = {
       name: safeName,
       auditDoc: "audit.md",
@@ -49,16 +37,50 @@ export async function POST(req: NextRequest) {
     if (facebookPageId?.trim()) config.facebookPageId = facebookPageId.trim();
     if (instagramAccountId?.trim()) config.instagramAccountId = instagramAccountId.trim();
 
-    fs.writeFileSync(path.join(clientDir, "config.json"), JSON.stringify(config, null, 2));
+    const auditDocContent = auditDoc?.trim()
+      ? auditDoc.trim()
+      : `# ${safeName} — Audience & Persona Audit\n\nAdd your persona document here.\n`;
 
-    if (auditDoc?.trim()) {
-      fs.writeFileSync(path.join(clientDir, "audit.md"), auditDoc.trim());
+    // Vercel's deployed functions run on a read-only filesystem, so client files can't be
+    // written to disk there — instead commit them straight to the repo, which triggers a
+    // redeploy. Locally (no token configured), fall back to writing to disk directly.
+    const useGithub = githubConfigured();
+
+    if (useGithub) {
+      const configPath = `website/clients/${safeName}/config.json`;
+      if (await githubFileExists(configPath)) {
+        return NextResponse.json({ error: `A client named "${safeName}" already exists.` }, { status: 409 });
+      }
+      await commitFileToGithub(configPath, JSON.stringify(config, null, 2), `Add client: ${safeName}`);
+      await commitFileToGithub(
+        `website/clients/${safeName}/audit.md`,
+        auditDocContent,
+        `Add client: ${safeName} (audit doc)`
+      );
     } else {
-      // Create an empty placeholder so the file exists
-      fs.writeFileSync(path.join(clientDir, "audit.md"), `# ${safeName} — Audience & Persona Audit\n\nAdd your persona document here.\n`);
+      const clientDir = path.join(CLIENTS_DIR, safeName);
+
+      // Prevent path traversal — ensure the resolved path stays inside CLIENTS_DIR
+      if (!clientDir.startsWith(CLIENTS_DIR + path.sep) && clientDir !== CLIENTS_DIR) {
+        return NextResponse.json({ error: "Invalid client name." }, { status: 400 });
+      }
+
+      if (fs.existsSync(clientDir)) {
+        return NextResponse.json({ error: `A client named "${safeName}" already exists.` }, { status: 409 });
+      }
+
+      fs.mkdirSync(clientDir, { recursive: true });
+      fs.writeFileSync(path.join(clientDir, "config.json"), JSON.stringify(config, null, 2));
+      fs.writeFileSync(path.join(clientDir, "audit.md"), auditDocContent);
     }
 
-    return NextResponse.json({ success: true, id: safeName, name: safeName, adAccountId: config.adAccountId });
+    return NextResponse.json({
+      success: true,
+      id: safeName,
+      name: safeName,
+      adAccountId: config.adAccountId,
+      deployPending: useGithub,
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: `Failed to create client: ${msg}` }, { status: 500 });
