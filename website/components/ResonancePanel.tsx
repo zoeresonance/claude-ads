@@ -242,6 +242,7 @@ function ScorePanel({
 
 export default function ResonancePanel({ result, clientName, performance }: Props) {
   const hasAds = !!result.ads;
+  const hasOrganic = !!result.organic;
   const [active, setActive] = useState<"ads" | "organic">(hasAds ? "ads" : "organic");
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -269,7 +270,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
           <h2 className="text-base font-bold text-white">Resonance Score</h2>
           <span className="text-xs text-slate-400 bg-[#2a2a2a] px-2 py-0.5 rounded-full">{clientName}</span>
         </div>
-        {hasAds ? (
+        {hasAds && hasOrganic ? (
           <div className="grid grid-cols-2 gap-2">
             {(["ads", "organic"] as const).map((tab) => {
               const data = result[tab]!;
@@ -303,7 +304,9 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             })}
           </div>
         ) : (
-          <p className="text-xs text-slate-500">No ad account connected — showing organic resonance only.</p>
+          <p className="text-xs text-slate-500">
+            {hasAds ? "Showing ads resonance only." : "Showing organic resonance only."}
+          </p>
         )}
       </div>
 
@@ -329,18 +332,20 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                   { key: "frequency",   label: "Frequency",   description: "Average number of times each person saw your ads.",               data: performance.ads.frequency,   format: "number",   color: "#db2777" },
                 ]}
               />
-              <PerformanceChart
-                title="Combined Organic — Facebook + Instagram"
-                metrics={[
-                  { key: "views",      label: "Views",      description: "Total content views across both platforms. Facebook: total impressions (including repeat views). Instagram: unique reach (daily impressions unavailable from Meta API).", data: performance.organic.combined.views,      format: "number", color: "#6366f1" },
-                  { key: "viewers",    label: "Viewers",    description: "Unique people who saw your content on Facebook or Instagram each day.",                                                                                                   data: performance.organic.combined.viewers,    format: "number", color: "#0ea5e9" },
-                  { key: "engagement", label: "Engagement", description: "Total interactions across both platforms. Facebook: reactions, comments, shares, and clicks. Instagram: likes and comments on individual posts.",                         data: performance.organic.combined.engagement, format: "number", color: "#10b981" },
-                ]}
-              />
+              {hasOrganic && (
+                <PerformanceChart
+                  title="Combined Organic — Facebook + Instagram"
+                  metrics={[
+                    { key: "views",      label: "Views",      description: "Total content views across both platforms. Facebook: total impressions (including repeat views). Instagram: unique reach (daily impressions unavailable from Meta API).", data: performance.organic.combined.views,      format: "number", color: "#6366f1" },
+                    { key: "viewers",    label: "Viewers",    description: "Unique people who saw your content on Facebook or Instagram each day.",                                                                                                   data: performance.organic.combined.viewers,    format: "number", color: "#0ea5e9" },
+                    { key: "engagement", label: "Engagement", description: "Total interactions across both platforms. Facebook: reactions, comments, shares, and clicks. Instagram: likes and comments on individual posts.",                         data: performance.organic.combined.engagement, format: "number", color: "#10b981" },
+                  ]}
+                />
+              )}
             </div>
           )}
         </>
-      ) : (
+      ) : result.organic ? (
         <>
           <ScorePanel
             data={result.organic}
@@ -388,7 +393,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
             metric. All other metrics respect the selected range.
           </p>
         </>
-      )}
+      ) : null}
       </div>{/* end print-region wrapper */}
     </div>
   );

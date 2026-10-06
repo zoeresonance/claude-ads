@@ -2,16 +2,33 @@
 
 import { useState, useEffect } from "react";
 import DateRangePicker, { DateRange, defaultDateRange } from "./DateRangePicker";
+import type { RunScope } from "@/lib/types";
 
 interface Client {
   id: string;
   name: string;
   adAccountId?: string;
+  hasOrganic?: boolean;
 }
 
 interface Props {
-  onAnalyze: (clientId: string, accountId: string | null, dateRange: DateRange) => void;
+  onAnalyze: (clientId: string, accountId: string | null, dateRange: DateRange, scope: RunScope) => void;
   loading: boolean;
+}
+
+const SCOPE_OPTIONS: { value: RunScope; label: string; description: string }[] = [
+  { value: "full",     label: "📊 Full Audit",    description: "Ads health score + ads & organic resonance" },
+  { value: "ads",      label: "📣 Ads Only",       description: "Skip organic — just the ads audit & ads resonance" },
+  { value: "organic",  label: "🌱 Organic Only",   description: "Skip the ads audit — just organic resonance" },
+];
+
+function naturalScope(client: Client | undefined): RunScope {
+  if (!client) return "full";
+  const canAds = !!client.adAccountId;
+  const canOrganic = !!client.hasOrganic;
+  if (canAds && canOrganic) return "full";
+  if (canAds) return "ads";
+  return "organic";
 }
 
 function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
@@ -35,7 +52,7 @@ function AddClientForm({ onAdded }: { onAdded: (client: Client) => void }) {
       });
       const data = await res.json();
       if (!res.ok || data.error) throw new Error(data.error);
-      onAdded({ id: data.id, name: data.name, adAccountId: data.adAccountId });
+      onAdded({ id: data.id, name: data.name, adAccountId: data.adAccountId, hasOrganic: data.hasOrganic });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create client");
     } finally {
@@ -134,10 +151,16 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>(defaultDateRange());
   const [showAddForm, setShowAddForm] = useState(false);
+  const [runScope, setRunScope] = useState<RunScope>("full");
 
   useEffect(() => {
     loadClients();
   }, []);
+
+  // Reset the scope to this client's natural default whenever the selected client changes
+  useEffect(() => {
+    setRunScope(naturalScope(clients.find((c) => c.id === selectedId)));
+  }, [selectedId]);
 
   function loadClients() {
     setFetchingClients(true);
@@ -162,8 +185,13 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
     e.preventDefault();
     if (!selectedId) return;
     const client = clients.find((c) => c.id === selectedId);
-    onAnalyze(selectedId, client?.adAccountId ?? null, dateRange);
+    onAnalyze(selectedId, client?.adAccountId ?? null, dateRange, runScope);
   }
+
+  const selectedClient = clients.find((c) => c.id === selectedId);
+  const canAds = !!selectedClient?.adAccountId;
+  const canOrganic = !!selectedClient?.hasOrganic;
+  const submitLabel = runScope === "ads" ? "Run Ads Analysis →" : runScope === "organic" ? "Run Organic Analysis →" : "Run Full Audit →";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -202,7 +230,13 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
-                {!c.adAccountId ? " (organic only)" : ""}
+                {c.adAccountId && !c.hasOrganic
+                  ? " (ads only)"
+                  : !c.adAccountId && c.hasOrganic
+                  ? " (organic only)"
+                  : !c.adAccountId && !c.hasOrganic
+                  ? " (not configured)"
+                  : ""}
               </option>
             ))}
           </select>
@@ -216,6 +250,40 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
 
         {showAddForm && <AddClientForm onAdded={handleClientAdded} />}
       </div>
+
+      {/* Run scope — only offer a choice when this client supports both halves */}
+      {selectedClient && canAds && canOrganic && (
+        <div className="space-y-1.5">
+          <label className="block text-sm font-semibold text-slate-200">What to run</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {SCOPE_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setRunScope(opt.value)}
+                className={`rounded-xl border-2 p-3 text-left transition-all ${
+                  runScope === opt.value
+                    ? "border-brand-300 bg-[#0d2020]"
+                    : "border-[#2d2d2d] bg-[#252525] hover:border-[#444]"
+                }`}
+              >
+                <div className="text-sm font-semibold text-slate-100">{opt.label}</div>
+                <div className="text-xs text-slate-400 mt-0.5">{opt.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {selectedClient && !canOrganic && canAds && (
+        <p className="text-xs text-slate-500">
+          This client has no Facebook Page / Instagram Account configured — running the ads audit only.
+        </p>
+      )}
+      {selectedClient && !canAds && canOrganic && (
+        <p className="text-xs text-slate-500">
+          This client has no ad account connected — running the organic resonance score only.
+        </p>
+      )}
 
       {/* Date range */}
       <DateRangePicker value={dateRange} onChange={setDateRange} />
@@ -234,12 +302,16 @@ export default function ConnectForm({ onAnalyze, loading }: Props) {
             Fetching data…
           </>
         ) : (
-          "Analyze Client →"
+          submitLabel
         )}
       </button>
 
       <p className="text-center text-xs text-slate-400">
-        Pulls campaigns, ad sets, creatives, pixels, audiences, and performance data for the selected range
+        {runScope === "ads"
+          ? "Pulls campaigns, ad sets, creatives, pixels, audiences, and ad performance data for the selected range"
+          : runScope === "organic"
+          ? "Pulls Facebook & Instagram posts and organic performance data for the selected range"
+          : "Pulls campaigns, ad sets, creatives, pixels, audiences, and performance data for the selected range"}
       </p>
     </form>
   );

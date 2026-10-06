@@ -7,7 +7,7 @@ import ResultsDashboard from "@/components/ResultsDashboard";
 import ResonancePanel from "@/components/ResonancePanel";
 import MetricQualityPanel from "@/components/MetricQualityPanel";
 import type { DateRange } from "@/components/DateRangePicker";
-import type { AdMetrics, AnalysisResult, ResonanceResult, PerformanceData } from "@/lib/types";
+import type { AdMetrics, AnalysisResult, ResonanceResult, PerformanceData, RunScope } from "@/lib/types";
 
 type Mode = "connect" | "manual";
 type ResultTab = "health" | "resonance";
@@ -40,25 +40,30 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<ResultTab>("health");
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
   const [activeDateRange, setActiveDateRange] = useState<DateRange | null>(null);
+  const [activeScope, setActiveScope] = useState<RunScope>("full");
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  async function handleConnect(clientId: string, accountId: string | null, dateRange: DateRange) {
+  async function handleConnect(clientId: string, accountId: string | null, dateRange: DateRange, scope: RunScope) {
     setError(null);
     setResult(null);
     setAccount(null);
     setResonanceResult(null);
     setResonanceError(null);
     setPerformanceData(null);
-    setActiveTab(accountId ? "health" : "resonance");
-    setOrganicOnly(!accountId);
     setActiveClientId(clientId);
     setActiveDateRange(dateRange);
+    setActiveScope(scope);
 
-    if (!accountId) {
-      // No ad account connected for this client — skip the paid audit entirely
-      // and run the organic-only resonance score instead.
-      fetchResonance(clientId, dateRange);
-      fetchPerformance(clientId, dateRange);
+    const runAdsAudit = scope !== "organic" && !!accountId;
+    setActiveTab(runAdsAudit ? "health" : "resonance");
+    setOrganicOnly(!runAdsAudit);
+
+    if (!runAdsAudit) {
+      // Ads audit isn't in scope for this run — skip it entirely and go
+      // straight to resonance (and, when scope is "ads", resonance will
+      // itself skip the organic half).
+      fetchResonance(clientId, dateRange, scope);
+      fetchPerformance(clientId, dateRange, scope);
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
       return;
     }
@@ -80,8 +85,8 @@ export default function Home() {
       setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
 
       // Kick off resonance + performance in the background (non-blocking)
-      fetchResonance(clientId, dateRange);
-      fetchPerformance(clientId, dateRange);
+      fetchResonance(clientId, dateRange, scope);
+      fetchPerformance(clientId, dateRange, scope);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -90,14 +95,14 @@ export default function Home() {
     }
   }
 
-  async function fetchResonance(clientId: string, dateRange: DateRange) {
+  async function fetchResonance(clientId: string, dateRange: DateRange, scope: RunScope) {
     setResonanceLoading(true);
     setResonanceError(null);
     try {
       const res = await fetch("/api/resonance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, dateRange }),
+        body: JSON.stringify({ clientId, dateRange, scope }),
       });
       const data = await res.json();
       if (res.status === 404) return; // No client config — silently skip
@@ -113,12 +118,12 @@ export default function Home() {
     }
   }
 
-  async function fetchPerformance(clientId: string, dateRange: DateRange) {
+  async function fetchPerformance(clientId: string, dateRange: DateRange, scope: RunScope) {
     try {
       const res = await fetch("/api/performance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId, dateRange }),
+        body: JSON.stringify({ clientId, dateRange, scope }),
       });
       const data = await res.json();
       if (!res.ok || data.error) return; // silently skip on error
@@ -164,6 +169,7 @@ export default function Home() {
     setOrganicOnly(false);
     setActiveClientId(null);
     setActiveDateRange(null);
+    setActiveScope("full");
     setActiveTab("health");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -392,7 +398,7 @@ export default function Home() {
                     </div>
                     {activeClientId && activeDateRange && (
                       <button
-                        onClick={() => fetchResonance(activeClientId, activeDateRange)}
+                        onClick={() => fetchResonance(activeClientId, activeDateRange, activeScope)}
                         disabled={resonanceLoading}
                         className="shrink-0 text-sm font-medium text-red-300 border border-red-800 bg-red-950/40 rounded-lg px-3 py-1.5 hover:bg-red-950/60 disabled:opacity-50 transition-colors"
                       >

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchDailyAdsInsights, fetchOrganicData } from "@/lib/meta-api";
 import { getClientById } from "@/lib/clients";
-import type { PerformanceData, DailyMetric } from "@/lib/types";
+import type { PerformanceData, DailyMetric, RunScope } from "@/lib/types";
 import type { PageInsightValue, DateRange } from "@/lib/meta-api";
 
 function extractDailySeries(insights: PageInsightValue[], metricName: string): DailyMetric[] {
@@ -27,7 +27,8 @@ function mergeSeries(...series: DailyMetric[][]): DailyMetric[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const { clientId, dateRange } = await req.json();
+    const { clientId, dateRange, scope } = await req.json();
+    const runScope: RunScope = scope === "ads" || scope === "organic" ? scope : "full";
     const token = process.env.META_SYSTEM_TOKEN;
 
     if (!token) return NextResponse.json({ error: "META_SYSTEM_TOKEN not configured." }, { status: 500 });
@@ -36,10 +37,10 @@ export async function POST(req: NextRequest) {
     const client = getClientById(clientId);
 
     const [dailyAds, organic] = await Promise.all([
-      client?.adAccountId
+      runScope !== "organic" && client?.adAccountId
         ? fetchDailyAdsInsights(token, client.adAccountId, dateRange as DateRange | undefined)
         : Promise.resolve([]),
-      client?.facebookPageId && client?.instagramAccountId
+      runScope !== "ads" && client?.facebookPageId && client?.instagramAccountId
         ? fetchOrganicData(token, client.facebookPageId, client.instagramAccountId, dateRange as DateRange | undefined)
         : Promise.resolve(null),
     ]);

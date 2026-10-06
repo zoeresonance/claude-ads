@@ -89,8 +89,12 @@ export interface ResonanceScoreResult {
 
 export interface ResonanceResult {
   ads?: ResonanceScoreResult;
-  organic: ResonanceScoreResult;
+  organic?: ResonanceScoreResult;
 }
+
+// Which half of an analysis to run — lets the first-page form skip the
+// ads audit, the organic fetch/scoring, or neither (full).
+export type RunScope = "full" | "ads" | "organic";
 
 export interface DailyMetric {
   date: string; // YYYY-MM-DD

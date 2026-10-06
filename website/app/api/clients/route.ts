@@ -10,6 +10,7 @@ export async function GET() {
     id: c.id,
     name: c.name,
     adAccountId: c.adAccountId,
+    hasOrganic: !!(c.facebookPageId && c.instagramAccountId),
   }));
   return NextResponse.json({ clients });
 }
@@ -58,7 +59,13 @@ export async function POST(req: NextRequest) {
       fs.writeFileSync(path.join(clientDir, "audit.md"), `# ${safeName} — Audience & Persona Audit\n\nAdd your persona document here.\n`);
     }
 
-    return NextResponse.json({ success: true, id: safeName, name: safeName, adAccountId: config.adAccountId });
+    return NextResponse.json({
+      success: true,
+      id: safeName,
+      name: safeName,
+      adAccountId: config.adAccountId,
+      hasOrganic: !!(config.facebookPageId && config.instagramAccountId),
+    });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: `Failed to create client: ${msg}` }, { status: 500 });
