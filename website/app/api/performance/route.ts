@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         frequency:   dailyAds.map((d) => ({ date: d.date_start, value: parseFloat(d.frequency ?? "0") })),
       },
       organic: (() => {
-        const empty = { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [] }, combined: { views: [], viewers: [], engagement: [] } };
+        const empty = { fb: { reach: [], engagements: [] }, ig: { reach: [], followerCount: [] }, combined: { views: [], viewers: [], engagement: [] }, igPosts: [] };
         if (!organic) return empty;
 
         const fbImpressions = extractDailySeries(organic.pageInsights, "page_impressions");
@@ -81,6 +81,10 @@ export async function POST(req: NextRequest) {
             viewers:    mergeSeries(fbReach, igReach),            // FB + IG unique reach
             engagement: mergeSeries(fbEngagements, igEngagement), // FB post engagements + IG likes+comments
           },
+          igPosts: organic.igMedia.map((post) => ({
+            timestamp: post.timestamp,
+            engagement: (post.like_count ?? 0) + (post.comments_count ?? 0),
+          })),
         };
       })(),
     };

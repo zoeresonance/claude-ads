@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import type { ResonanceResult, ResonanceScoreResult, ResonanceRecommendation, PerformanceData } from "@/lib/types";
 import PerformanceChart from "@/components/PerformanceChart";
+import BestPostingTimes from "@/components/BestPostingTimes";
 
 function printSection(ref: React.RefObject<HTMLDivElement | null>) {
   const el = ref.current;
@@ -374,6 +375,7 @@ export default function ResonancePanel({ result, clientName, performance }: Prop
                   ]}
                 />
               </div>
+              <BestPostingTimes posts={performance.organic.igPosts} />
             </div>
           ) : (
             <div className="bg-[#1e1e1e] rounded-2xl border border-[#2d2d2d] shadow-sm p-5 text-center text-sm text-slate-500">

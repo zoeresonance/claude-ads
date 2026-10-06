@@ -120,6 +120,10 @@ export interface PerformanceData {
       viewers: DailyMetric[];    // FB unique reach + IG unique reach
       engagement: DailyMetric[]; // FB post engagements + IG likes+comments aggregated from posts
     };
+    // Per-post timestamp + engagement (likes + comments), used to surface best posting
+    // day/time. Instagram only — Facebook's /posts endpoint doesn't expose per-post
+    // engagement without additional read_insights permissions (see lib/meta-api.ts).
+    igPosts: { timestamp: string; engagement: number }[];
   };
 }
 
